@@ -1,0 +1,151 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Virtual Try-On - Polaritique</title>
+    <link rel="stylesheet" href="{{url_for('static', filename='/css/try-on.css')}}">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+</head>
+<body>
+    <header class="header">
+        <div class="logo">
+            <h1>Polaritique</h1>
+        </div>
+        <div class="nav-buttons">
+            <button class="btn btn-secondary" onclick="resetAll()">
+                <i class="fas fa-refresh"></i> Reset
+            </button>
+            <button class="btn btn-primary" onclick="generateTryOn()">
+                <i class="fas fa-magic"></i> Try On
+            </button>
+        </div>
+    </header>
+
+    <main class="main-container">
+        <!-- Left Panel - Clothing Categories -->
+        <div class="panel">
+            <h2 class="section-title">
+                <i class="fas fa-tshirt"></i> Clothing Items
+            </h2>
+            
+            <!-- Bulk Upload Section -->
+            <div class="bulk-upload-section">
+                <div class="upload-zone bulk-upload" id="bulk-upload" ondrop="dropHandler(event, 'bulk')" ondragover="dragOverHandler(event)" ondragleave="dragLeaveHandler(event)">
+                    <i class="fas fa-cloud-upload-alt"></i>
+                    <p><strong>Bulk Upload Clothes</strong><br>Drop multiple images or click to select</p>
+                    <small>Supports: JPG, PNG, WEBP (Max 50 files)</small>
+                    <input type="file" id="bulk-file" accept="image/*" multiple hidden>
+                </div>
+                <div class="upload-progress" id="upload-progress">
+                    <div class="progress-bar">
+                        <div class="progress-fill" id="progress-fill"></div>
+                    </div>
+                    <p id="progress-text">0 of 0 files uploaded</p>
+                </div>
+            </div>
+
+            <!-- Category Tabs -->
+            <div class="category-tabs">
+                <button class="tab-btn active" onclick="switchCategory('tops')" data-category="tops">
+                    <i class="fas fa-tshirt"></i> Tops
+                </button>
+                <button class="tab-btn" onclick="switchCategory('bottoms')" data-category="bottoms">
+                    <i class="fas fa-person-booth"></i> Bottoms
+                </button>
+            </div>
+            <div class="category-content">
+                <div class="category-section" id="tops-section">
+                    <div class="upload-zone category-upload" ondrop="dropHandler(event, 'tops')" ondragover="dragOverHandler(event)" ondragleave="dragLeaveHandler(event)">
+                        <i class="fas fa-tshirt"></i>
+                        <p>Add Tops</p>
+                        <input type="file" id="tops-file" accept="image/*" multiple hidden>
+                    </div>
+                    <div class="clothes-grid" id="tops-grid"></div>
+                </div>
+                <div class="category-section hidden" id="bottoms-section">
+                    <div class="upload-zone category-upload" ondrop="dropHandler(event, 'bottoms')" ondragover="dragOverHandler(event)" ondragleave="dragLeaveHandler(event)">
+                        <i class="fas fa-person-booth"></i>
+                        <p>Add Bottoms</p>
+                        <input type="file" id="bottoms-file" accept="image/*" multiple hidden>
+                    </div>
+                    <div class="clothes-grid" id="bottoms-grid"></div>
+                </div>
+            </div>
+
+            <!-- Clothing Management Tools -->
+            <div class="clothing-tools">
+                <button class="btn btn-secondary" onclick="deleteSelected()">
+                    <i class="fas fa-trash"></i> Delete Selected
+                </button>
+            </div>
+        </div>
+
+        <!-- Center Panel - Model -->
+        <div class="panel center-panel">
+            <h2 class="section-title">
+                <i class="fas fa-user"></i> Your Photo
+            </h2>
+            
+            <div class="upload-zone" id="model-upload" ondrop="dropHandler(event, 'model')" ondragover="dragOverHandler(event)" ondragleave="dragLeaveHandler(event)">
+                <i class="fas fa-camera"></i>
+                <p>Upload Your Photo<br>for Virtual Try-On</p>
+                <input type="file" id="model-file" accept="image/*" hidden>
+            </div>
+
+            <div class="model-container" id="model-container">
+                <div class="placeholder-text">
+                    <i class="fas fa-user" style="font-size: 4rem; color: #ccc; margin-bottom: 1rem;"></i>
+                    <p style="color: #999;">Upload your photo to get started</p>
+                </div>
+                <img id="model-image" class="model-image hidden" alt="Your Photo">
+            </div>
+
+            <div class="controls">
+                <button class="btn btn-secondary" onclick="clearModel()">
+                    <i class="fas fa-trash"></i> Clear
+                </button>
+            </div>
+        </div>
+
+        <!-- Right Panel - Results -->
+        <div class="panel result-panel">
+            <h2 class="section-title">
+                <i class="fas fa-magic"></i> AI Try-On Results
+            </h2>
+            
+            <div class="ai-result" id="ai-result">
+                <div class="loading" id="loading">
+                    <div class="spinner"></div>
+                    <p>AI is generating your try-on result...</p>
+                </div>
+                <div id="result-placeholder">
+                    <i class="fas fa-image" style="font-size: 4rem; color: #ccc; margin-bottom: 1rem;"></i>
+                    <p style="color: #999;">Your AI-generated try-on will appear here</p>
+                </div>
+                <img id="result-image" class="hidden" alt="Try-on Result">
+            </div>
+
+            <div class="ai-comment">
+                <h3><i class="fas fa-robot"></i> AI Styling Assistant</h3>
+                <p id="ai-comment-text">Upload your photo and select clothing items to get personalized styling recommendations!</p>
+            </div>
+
+            <div class="controls">
+                <button class="btn btn-secondary" onclick="downloadResult()">
+                    <i class="fas fa-download"></i> Download
+                </button>
+                <button class="btn btn-primary" onclick="shareResult()">
+                    <i class="fas fa-share"></i> Share
+                </button>
+            </div>
+        </div>
+    </main>
+
+    <footer class="footer">
+        <p>&copy; 2024 Polaritique. All rights reserved. | Virtual Try-On Technology</p>
+    </footer>
+
+    <script src="{{ url_for('static', filename='/js/try-on.js') }}"></script>
+</body>
+</html>
