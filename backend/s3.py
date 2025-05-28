@@ -18,6 +18,7 @@ s3_setting = {
 
 s3 = None
 def init_s3():
+    global s3
     global s3_setting
     load_dotenv()
     s3_setting['S3_BUCKET'] = os.getenv("S3_BUCKET")
@@ -30,7 +31,6 @@ def init_s3():
     #                 aws_access_key_id=s3_setting['S3_ACCESS_KEY'],
     #                 aws_secret_access_key=s3_setting['S3_SECRET_KEY'])
 
-    global s3
     s3 = boto3.client('s3', region_name=s3_setting['S3_REGION']) 
 
 ALLOWED_EXTENSIONS = {'png', 'jpg', 'jpeg'}
@@ -126,3 +126,10 @@ def delete_image_from_s3(filename: str):
     except Exception as e:
         return {'error': f'Failed to delete: {str(e)}'}, 500
 
+# example
+# init_s3()
+# sample_image_url = "https://shoplineimg.com/5f4760ee70e52e003f4199b5/657bfa1a28b4fe001af779e3/800x.jpg"
+# response, status_code = upload_image_from_url(image_url = sample_image_url, prefix = "avatar", filename_hint = "avatar.jpg")
+# print(response, status_code)
+
+# print(delete_image_from_s3('avatar/84a49a0c11fe4128996d1e3507c101b1_avatar.jpg'))
