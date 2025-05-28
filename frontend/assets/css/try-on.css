@@ -565,6 +565,38 @@ body {
     border: 2px solid #667eea;
 }
 
+.slogan {
+    text-align: center;
+    font-size: 1.4rem;
+    font-weight: bold;
+    margin: 2rem 0 0.5rem 0;
+    letter-spacing: 1px;
+    word-spacing: 0.5rem;
+}
+
+.slogan-drag {
+    color: #ed3b3b;
+}
+.slogan-drop {
+    color: #fd9b12;
+}
+.slogan-dress {
+    color: #faef0f;
+}
+.slogan-virtually {
+    color: #11ee78;
+}
+
+.slogan-text {
+    color: #fff;
+    font-size: 1.4rem;
+    font-weight: bold;
+    text-align: center;
+    display: inline-block;
+    margin: 2rem 0 0.5rem 0;
+    letter-spacing: 1px;
+}
+
 @media (max-width: 768px) {
     .main-container {
         grid-template-columns: 1fr;

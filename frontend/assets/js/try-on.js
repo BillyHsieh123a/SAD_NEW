@@ -462,54 +462,123 @@ function resetAll() {
     updateAIComment();
 }
 
+function getBrandedResultImage(callback) {
+    if (!currentTryOnResult) {
+        alert('No result to process. Please generate a try-on first!');
+        return;
+    }
+    const aiComment = document.getElementById('ai-comment-text').textContent || '';
+    const appName = "Dressique Virtual Try-On";
+
+    // Create a new canvas
+    const img = new Image();
+    img.onload = function() {
+        const width = img.width;
+        const height = img.height;
+        const extraHeight = 100; // Space for branding and comment
+        const canvas = document.createElement('canvas');
+        canvas.width = width;
+        canvas.height = height + extraHeight;
+        const ctx = canvas.getContext('2d');
+
+        // Draw the try-on image
+        ctx.drawImage(img, 0, 0, width, height);
+
+        // Draw a white rectangle for text background
+        ctx.fillStyle = "#fff";
+        ctx.fillRect(0, height, width, extraHeight);
+
+        // Draw app name
+        ctx.font = "bold 24px Arial";
+        ctx.fillStyle = "#667eea";
+        ctx.textAlign = "center";
+        ctx.fillText(appName, width / 2, height + 35);
+
+        // Draw AI comment (wrap if too long)
+        ctx.font = "16px Arial";
+        ctx.fillStyle = "#333";
+        const commentY = height + 65;
+        const maxWidth = width - 40;
+        wrapText(ctx, aiComment, width / 2, commentY, maxWidth, 22);
+
+        // Return the new image as DataURL
+        callback(canvas.toDataURL("image/png"));
+    };
+    img.src = currentTryOnResult;
+
+    // Helper for wrapping text
+    function wrapText(ctx, text, x, y, maxWidth, lineHeight) {
+        const words = text.split(' ');
+        let line = '';
+        let lines = [];
+        for (let n = 0; n < words.length; n++) {
+            const testLine = line + words[n] + ' ';
+            const metrics = ctx.measureText(testLine);
+            const testWidth = metrics.width;
+            if (testWidth > maxWidth && n > 0) {
+                lines.push(line);
+                line = words[n] + ' ';
+            } else {
+                line = testLine;
+            }
+        }
+        lines.push(line);
+        lines.forEach((l, i) => {
+            ctx.fillText(l.trim(), x, y + i * lineHeight);
+        });
+    }
+}
+
+// Download with branding
 function downloadResult() {
     if (!currentTryOnResult) {
         alert('No result to download. Please generate a try-on first!');
         return;
     }
-    
-    const link = document.createElement('a');
-    link.download = 'virtual-tryon-result.png';
-    link.href = currentTryOnResult;
-    link.click();
+    getBrandedResultImage(function(dataUrl) {
+        const link = document.createElement('a');
+        link.download = 'virtual-tryon-result.png';
+        link.href = dataUrl;
+        link.click();
+    });
 }
 
+// Share with branding
 function shareResult() {
     if (!currentTryOnResult) {
         alert('No result to share. Please generate a try-on first!');
         return;
     }
-
-    // Try to use the Web Share API with files (if supported)
-    if (navigator.canShare && window.File && window.fetch) {
-        fetch(currentTryOnResult)
-            .then(res => res.blob())
-            .then(blob => {
-                const file = new File([blob], 'tryon-result.png', { type: blob.type });
-                if (navigator.canShare({ files: [file] })) {
-                    navigator.share({
-                        title: 'My Virtual Try-On Result',
-                        text: 'Check out my virtual try-on result from Polaritique!',
-                        files: [file]
-                    });
-                } else {
-                    fallbackShare();
-                }
-            })
-            .catch(fallbackShare);
-    } else {
-        fallbackShare();
-    }
-
-    function fallbackShare() {
-        // Fallback: copy image URL to clipboard
-        if (navigator.clipboard) {
-            navigator.clipboard.writeText(currentTryOnResult);
-            alert('Image link copied! Paste it to share on social media.');
+    getBrandedResultImage(function(dataUrl) {
+        if (navigator.canShare && window.File && window.fetch) {
+            fetch(dataUrl)
+                .then(res => res.blob())
+                .then(blob => {
+                    const file = new File([blob], 'tryon-result.png', { type: blob.type });
+                    if (navigator.canShare({ files: [file] })) {
+                        navigator.share({
+                            title: 'My Virtual Try-On Result',
+                            text: 'Check out my virtual try-on result from Dressique!',
+                            files: [file]
+                        });
+                    } else {
+                        fallbackShare(dataUrl);
+                    }
+                })
+                .catch(() => fallbackShare(dataUrl));
         } else {
-            alert('Sharing is not supported on this browser. Please save and share the image manually.');
+            fallbackShare(dataUrl);
         }
-    }
+
+        function fallbackShare(url) {
+            if (navigator.clipboard) {
+                navigator.clipboard.writeText(url);
+                alert('Image link copied! Paste it to share on social media.');
+            } else {
+                alert('Sharing is not supported on this browser. Please save and share the image manually.');
+            }
+        }
+    });
 }
 
 // Initialize on page load
