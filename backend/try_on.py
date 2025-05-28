@@ -179,18 +179,25 @@ def cache_image_on_server(result_image_src, user_id, clothes_id, color):
     
 @try_on.post("/image/result")
 def upload_result():
-    
+    # TODO: Implement the upload_result functionality
+    return jsonify({"message": "upload_result endpoint not implemented"}), 501
+
 @try_on.post("/image/clothes")
 def upload_clothes():
+    # TODO: Implement the upload_clothes functionality
+    return jsonify({"message": "upload_clothes endpoint not implemented"}), 501
     
 @try_on.post("/image/avatar")
 def upload_avatar():
-    
+    # TODO: Implement the upload_avatar functionality
+    return jsonify({"message": "upload_avatar endpoint not implemented"}), 501
+
 @try_on.delete("/image/clothes")
 def delete_clothes():
-    
+    # TODO: Implement the delete_clothes functionality
+    return jsonify({"message": "delete_clothes endpoint not implemented"}), 501
+
 @try_on.delete("/image/avatar")
 def delete_avatar():
-    
-
-    
+    # TODO: Implement the delete_avatar functionality
+    return jsonify({"message": "delete_avatar endpoint not implemented"}), 501
