@@ -126,16 +126,3 @@ def delete_image_from_s3(filename: str):
     except Exception as e:
         return {'error': f'Failed to delete: {str(e)}'}, 500
 
-# @app.get('/preview/<path:filename>')
-# def preview_image(filename):
-#     try:
-#         s3_obj = s3.get_object(Bucket=s3_setting['S3_BUCKET'], Key=filename)
-#         return send_file(
-#             io.BytesIO(s3_obj['Body'].read()),
-#             mimetype=s3_obj['ContentType']
-#         )
-#     except Exception as e:
-#         return jsonify({'error': str(e)}), 404
-    
-# if __name__ == '__main__':
-#     app.run(debug=True)
