@@ -11,6 +11,9 @@ let currentTryOnResult = null;
 let uploadQueue = [];
 let isUploading = false;
 
+let tryOnResults = []; // Store all generated results
+let selectedResultIndex = -1;
+
 // Initialize drag and drop functionality
 function initializeUploadZones() {
     const uploadZones = document.querySelectorAll('.upload-zone');
@@ -348,6 +351,68 @@ function showTryOnResult(src) {
     placeholder.classList.add('hidden');
     
     currentTryOnResult = src;
+
+    // Always store the result, even if it's a duplicate
+    tryOnResults.push(src);
+    selectedResultIndex = tryOnResults.length - 1;
+    renderTryOnGallery();
+}
+
+function renderTryOnGallery() {
+    const gallery = document.getElementById('tryon-gallery');
+    gallery.innerHTML = '';
+    tryOnResults.forEach((src, idx) => {
+        const wrapper = document.createElement('div');
+        wrapper.style.position = 'relative';
+        wrapper.style.display = 'inline-block';
+
+        const img = document.createElement('img');
+        img.src = src;
+        img.alt = `Try-On Result ${idx + 1}`;
+        if (idx === selectedResultIndex) img.classList.add('selected');
+        img.addEventListener('click', () => {
+            selectedResultIndex = idx;
+            showGalleryResult(idx);
+            renderTryOnGallery();
+        });
+
+        // Delete button
+        const delBtn = document.createElement('button');
+        delBtn.textContent = '×';
+        delBtn.title = 'Delete this result';
+        delBtn.style.position = 'absolute';
+        delBtn.style.top = '2px';
+        delBtn.style.right = '2px';
+        delBtn.style.background = 'rgba(255,0,0,0.8)';
+        delBtn.style.color = '#fff';
+        delBtn.style.border = 'none';
+        delBtn.style.borderRadius = '50%';
+        delBtn.style.width = '20px';
+        delBtn.style.height = '20px';
+        delBtn.style.cursor = 'pointer';
+        delBtn.style.fontWeight = 'bold';
+        delBtn.style.zIndex = '2';
+        delBtn.addEventListener('click', (e) => {
+            e.stopPropagation();
+            deleteTryOnResult(idx);
+        });
+
+        wrapper.appendChild(img);
+        wrapper.appendChild(delBtn);
+        gallery.appendChild(wrapper);
+    });
+}
+
+function showGalleryResult(idx) {
+    const src = tryOnResults[idx];
+    if (!src) return;
+    const resultImage = document.getElementById('result-image');
+    const placeholder = document.getElementById('result-placeholder');
+    resultImage.src = src;
+    resultImage.classList.remove('hidden');
+    resultImage.classList.add('fade-in');
+    placeholder.classList.add('hidden');
+    currentTryOnResult = src;
 }
 
 // AI Comment Generation
@@ -392,6 +457,8 @@ function resetAll() {
     placeholder.classList.remove('hidden');
     
     currentTryOnResult = null;
+    tryOnResults = [];
+    selectedResultIndex = -1;
     updateAIComment();
 }
 
@@ -412,20 +479,36 @@ function shareResult() {
         alert('No result to share. Please generate a try-on first!');
         return;
     }
-    
-    if (navigator.share) {
-        // Use native sharing if available
-        canvas.toBlob(blob => {
-            const file = new File([blob], 'tryon-result.png', { type: 'image/png' });
-            navigator.share({
-                title: 'My Virtual Try-On Result',
-                text: 'Check out my virtual try-on result from Polaritique!',
-                files: [file]
-            });
-        });
+
+    // Try to use the Web Share API with files (if supported)
+    if (navigator.canShare && window.File && window.fetch) {
+        fetch(currentTryOnResult)
+            .then(res => res.blob())
+            .then(blob => {
+                const file = new File([blob], 'tryon-result.png', { type: blob.type });
+                if (navigator.canShare({ files: [file] })) {
+                    navigator.share({
+                        title: 'My Virtual Try-On Result',
+                        text: 'Check out my virtual try-on result from Polaritique!',
+                        files: [file]
+                    });
+                } else {
+                    fallbackShare();
+                }
+            })
+            .catch(fallbackShare);
     } else {
-        // Fallback: copy to clipboard
-        alert('Result copied to clipboard! You can paste it anywhere.');
+        fallbackShare();
+    }
+
+    function fallbackShare() {
+        // Fallback: copy image URL to clipboard
+        if (navigator.clipboard) {
+            navigator.clipboard.writeText(currentTryOnResult);
+            alert('Image link copied! Paste it to share on social media.');
+        } else {
+            alert('Sharing is not supported on this browser. Please save and share the image manually.');
+        }
     }
 }
 
@@ -455,4 +538,24 @@ function deleteSelected() {
     renderClothingGrid('tops');
     renderClothingGrid('bottoms');
     updateAIComment();
+}
+
+function deleteTryOnResult(idx) {
+    tryOnResults.splice(idx, 1);
+    // Adjust selectedResultIndex if needed
+    if (selectedResultIndex >= tryOnResults.length) {
+        selectedResultIndex = tryOnResults.length - 1;
+    }
+    // Show the new selected result or hide if none left
+    if (selectedResultIndex >= 0) {
+        showGalleryResult(selectedResultIndex);
+    } else {
+        // No results left
+        const resultImage = document.getElementById('result-image');
+        const placeholder = document.getElementById('result-placeholder');
+        resultImage.classList.add('hidden');
+        placeholder.classList.remove('hidden');
+        currentTryOnResult = null;
+    }
+    renderTryOnGallery();
 }
