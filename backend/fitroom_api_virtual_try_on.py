@@ -260,5 +260,9 @@ def try_on(model_filename, upper_filename, lower_filename, cloth_types: list):
 # upper_filename = None
 # lower_filename = None
 # cloth_types = []
+# import time
+# start = time.time()
 # response_body, status_code = try_on(model_filename, upper_filename, lower_filename, cloth_types)
+# end = time.time()
 # print(response_body, status_code) #{'message': , 'presigned_url':}, 200
+# print(end - start)
