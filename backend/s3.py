@@ -9,19 +9,19 @@ from io import BytesIO
 import requests
 
 # S3 設定
-# s3_setting = {
-#     "S3_BUCKET": None,
-#     "S3_REGION": None,
-#     "S3_ACCESS_KEY": None,
-#     "S3_SECRET_KEY": None,
-# }
+s3_setting = {
+    "S3_BUCKET": None,
+    "S3_REGION": None,
+    # "S3_ACCESS_KEY": None,
+    # "S3_SECRET_KEY": None,
+}
 
 s3 = None
 def init_s3():
-    # global s3_setting
-    # load_dotenv()
-    # s3_setting['S3_BUCKET'] = os.getenv("S3_BUCKET")
-    # s3_setting['S3_REGION'] = os.getenv("S3_REGION")
+    global s3_setting
+    load_dotenv()
+    s3_setting['S3_BUCKET'] = os.getenv("S3_BUCKET")
+    s3_setting['S3_REGION'] = os.getenv("S3_REGION")
     # s3_setting['S3_ACCESS_KEY'] = os.getenv("S3_ACCESS_KEY")
     # s3_setting['S3_SECRET_KEY'] = os.getenv("S3_SECRET_KEY")
 
@@ -31,7 +31,7 @@ def init_s3():
     #                 aws_secret_access_key=s3_setting['S3_SECRET_KEY'])
 
     global s3
-    s3 = boto3.client('s3') 
+    s3 = boto3.client('s3', region_name=s3_setting['S3_REGION']) 
 
 ALLOWED_EXTENSIONS = {'png', 'jpg', 'jpeg'}
 
