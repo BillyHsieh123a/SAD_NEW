@@ -253,10 +253,10 @@ def try_on(model_filename, upper_filename, lower_filename, cloth_types):
 
     return response_body, status_code
 
-init_fitroom_api_key()
-model_filename = None
-upper_filename = None
-lower_filename = None
-cloth_types = []
-response_body, status_code = try_on(model_filename, upper_filename, lower_filename, cloth_types)
-print(response_body, status_code) #{'message': , 'presigned_url':}, 200
+# init_fitroom_api_key()
+# model_filename = None
+# upper_filename = None
+# lower_filename = None
+# cloth_types = []
+# response_body, status_code = try_on(model_filename, upper_filename, lower_filename, cloth_types)
+# print(response_body, status_code) #{'message': , 'presigned_url':}, 200
