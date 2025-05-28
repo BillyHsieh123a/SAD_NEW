@@ -12,27 +12,27 @@ def init_fitroom_api_key():
     global API_KEY
     load_dotenv()
     API_KEY =  os.getenv("FITROOM_API_KEY")
-    
+
 # AVATAR_PATH = Path("avatar.jpg")
 # GARMENT_PATH = Path("strpshirt_white.jpg")
 
 # def avatar_check(image_path, api_key):
-    # url = "https://platform.fitroom.app/api/tryon/input_check/v1/model"
-    # headers = {
-    #     "X-API-KEY": api_key
-    # }
+#     url = "https://platform.fitroom.app/api/tryon/input_check/v1/model"
+#     headers = {
+#         "X-API-KEY": api_key
+#     }
 
-    # with image_path.open("rb") as img_file:
-    #     files = {
-    #         "input_image": img_file
-    #     }
-    #     res = requests.post(url, headers=headers, files=files)
+#     with image_path.open("rb") as img_file:
+#         files = {
+#             "input_image": img_file
+#         }
+#         res = requests.post(url, headers=headers, files=files)
 
-    # print("Status Code:", res.status_code)
-    # try:
-    #     print("Response JSON:", res.json())
-    # except Exception:
-    #     print("Response Text:", res.text)
+#     print("Status Code:", res.status_code)
+#     try:
+#         print("Response JSON:", res.json())
+#     except Exception:
+#         print("Response Text:", res.text)
 
 # # 執行檢查
 # avatar_check(AVATAR_PATH, API_KEY)
@@ -77,7 +77,7 @@ def poll_tryon_result(task_id, poll_interval=2, max_retries=10):
 
             if status == "COMPLETED" and "download_signed_url" in data:
                 image_url = data["download_signed_url"]
-                print("✅ Download URL:", image_url)
+                # print("✅ Download URL:", image_url)
 
                 # 下載圖片
                 # img_data = requests.get(image_url).content

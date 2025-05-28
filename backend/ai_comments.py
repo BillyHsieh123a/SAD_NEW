@@ -81,7 +81,6 @@ def get_comments(image_url): # need to pass OPENAI_API_KEY and image url
     # print(embedding_input)
 
 sample_image_url = "https://shoplineimg.com/5f4760ee70e52e003f4199b5/657bfa1a28b4fe001af779e3/800x.jpg"
-
 # example
 init_get_ai_comments()
 overall_comment, recommendation_comment = get_comments(sample_image_url)

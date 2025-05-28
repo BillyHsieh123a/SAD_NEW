@@ -5,7 +5,9 @@ from flask_cors import CORS
 
 from try_on import try_on
 from page_serve import page_serve
-
+from s3 import init_s3
+from fitroom_api_virtual_try_on import init_fitroom_api_key
+from ai_comments import init_get_ai_comments
 serverURL = "http://127.0.0.1:5000"
 
 # Global Flask app (SUBJECT TO CHANGE)
@@ -19,6 +21,9 @@ app.register_blueprint(page_serve)
 def init_app():
     init_db_conn()
     app.secret_key = os.urandom(32)  # session key
+    init_s3()
+    init_fitroom_api_key()
+    init_get_ai_comments()
 
 def finish_app():
     close_psql_conn()
