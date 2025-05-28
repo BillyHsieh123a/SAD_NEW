@@ -9,19 +9,19 @@ from io import BytesIO
 import requests
 
 # S3 設定
-# s3_setting = {
-#     "S3_BUCKET": None,
-#     "S3_REGION": None,
-#     "S3_ACCESS_KEY": None,
-#     "S3_SECRET_KEY": None,
-# }
+s3_setting = {
+    "S3_BUCKET": None,
+    "S3_REGION": None,
+    # "S3_ACCESS_KEY": None,
+    # "S3_SECRET_KEY": None,
+}
 
 s3 = None
 def init_s3():
-    # global s3_setting
-    # load_dotenv()
-    # s3_setting['S3_BUCKET'] = os.getenv("S3_BUCKET")
-    # s3_setting['S3_REGION'] = os.getenv("S3_REGION")
+    global s3_setting
+    load_dotenv()
+    s3_setting['S3_BUCKET'] = os.getenv("S3_BUCKET")
+    s3_setting['S3_REGION'] = os.getenv("S3_REGION")
     # s3_setting['S3_ACCESS_KEY'] = os.getenv("S3_ACCESS_KEY")
     # s3_setting['S3_SECRET_KEY'] = os.getenv("S3_SECRET_KEY")
 
@@ -31,7 +31,7 @@ def init_s3():
     #                 aws_secret_access_key=s3_setting['S3_SECRET_KEY'])
 
     global s3
-    s3 = boto3.client('s3') 
+    s3 = boto3.client('s3', region_name=s3_setting['S3_REGION']) 
 
 ALLOWED_EXTENSIONS = {'png', 'jpg', 'jpeg'}
 
@@ -71,6 +71,7 @@ def _upload_bytes_to_s3(prefix, data_bytes, content_type, filename_hint):
     except NoCredentialsError:
         return {'error': 'AWS credentials not found'}, 500
 
+# clothes/avatar
 def upload_to_s3(prefix):
     if 'photo' not in request.files:
         return jsonify({'error': 'No file part'}), 400
@@ -125,16 +126,3 @@ def delete_image_from_s3(filename: str):
     except Exception as e:
         return {'error': f'Failed to delete: {str(e)}'}, 500
 
-# @app.get('/preview/<path:filename>')
-# def preview_image(filename):
-#     try:
-#         s3_obj = s3.get_object(Bucket=s3_setting['S3_BUCKET'], Key=filename)
-#         return send_file(
-#             io.BytesIO(s3_obj['Body'].read()),
-#             mimetype=s3_obj['ContentType']
-#         )
-#     except Exception as e:
-#         return jsonify({'error': str(e)}), 404
-    
-# if __name__ == '__main__':
-#     app.run(debug=True)

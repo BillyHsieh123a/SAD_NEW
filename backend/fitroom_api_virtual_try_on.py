@@ -88,9 +88,9 @@ def poll_tryon_result(task_id, poll_interval=2, max_retries=10):
                 # print(f"✅ Image saved to: {output_path.resolve()}")
                 response_body, status_code = upload_image_from_url(image_url = image_url, prefix = "try_on", filename_hint= "try_on.jpg")
 
-                print(response_body['message'])        # 'Upload successful'
-                print(response_body['presigned_url'])  # S3 URL
-                print(status_code)                     # 200
+                # print(response_body['message'])        # 'Upload successful'
+                # print(response_body['presigned_url'])  # S3 URL
+                # print(status_code)                     # 200
                 return response_body, status_code
 
             elif status in ("FAILED", "CANCELLED"):
@@ -235,7 +235,7 @@ def create_tryon_task(model_url, cloth_type, upper_url=None, lower_url=None, wai
 #     cloth_type="upper"
 # )
 
-def try_on(model_filename, upper_filename, lower_filename, cloth_types):
+def try_on(model_filename, upper_filename, lower_filename, cloth_types: list):
     model_url = get_presigned_url(model_filename)
     upper_url = get_presigned_url(upper_filename)
     lower_url = None
@@ -251,7 +251,9 @@ def try_on(model_filename, upper_filename, lower_filename, cloth_types):
         lower_url = lower_url
     )
 
-    return response_body, status_code
+    return response_body, status_code # 'message', 'filename', 'presigned_url', status_code
+
+
 
 # init_fitroom_api_key()
 # model_filename = None
