@@ -71,6 +71,7 @@ def _upload_bytes_to_s3(prefix, data_bytes, content_type, filename_hint):
     except NoCredentialsError:
         return {'error': 'AWS credentials not found'}, 500
 
+# clothes/avatar
 def upload_to_s3(prefix):
     if 'photo' not in request.files:
         return jsonify({'error': 'No file part'}), 400
