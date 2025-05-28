@@ -450,15 +450,21 @@ function resetAll() {
     selectedClothes = { tops: [], bottoms: [], model: null };
     document.querySelectorAll('.clothes-grid').forEach(grid => grid.innerHTML = '');
     clearModel();
-    
+
     const resultImage = document.getElementById('result-image');
     const placeholder = document.getElementById('result-placeholder');
     resultImage.classList.add('hidden');
+    resultImage.src = ''; // <-- This line ensures the image is discarded
     placeholder.classList.remove('hidden');
-    
+
     currentTryOnResult = null;
     tryOnResults = [];
     selectedResultIndex = -1;
+
+    // Clear the try-on gallery
+    const gallery = document.getElementById('tryon-gallery');
+    if (gallery) gallery.innerHTML = '';
+
     updateAIComment();
 }
 
