@@ -34,6 +34,7 @@ def init_s3():
     s3 = boto3.client('s3', region_name=s3_setting['S3_REGION']) 
 
 ALLOWED_EXTENSIONS = {'png', 'jpg', 'jpeg'}
+ALLOWED_MIME_TYPES = {'image/png', 'image/jpeg'}
 def allowed_file(filename):
     return '.' in filename and filename.rsplit('.', 1)[1].lower() in ALLOWED_EXTENSIONS
 
@@ -73,15 +74,13 @@ def _upload_bytes_to_s3(prefix, data_bytes, content_type, filename_hint):
 
 # upload image from frontend, prefix = clothes/avatar
 def upload_to_s3(file, prefix):
-    # if 'photo' not in request.files:
-    #     return jsonify({'error': 'No file part'}), 400
-
-    # file = request.files['photo']
-
     if file.filename == '':
         return jsonify({'error': 'No selected file'}), 400
 
     if file and allowed_file(file.filename):
+        if file.content_type not in ALLOWED_MIME_TYPES:
+            return jsonify({'error': 'Unsupported file type'}), 400
+
         return _upload_bytes_to_s3(
             prefix=prefix,
             data_bytes=file.read(),
