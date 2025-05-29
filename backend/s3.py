@@ -34,10 +34,10 @@ def init_s3():
     s3 = boto3.client('s3', region_name=s3_setting['S3_REGION']) 
 
 ALLOWED_EXTENSIONS = {'png', 'jpg', 'jpeg'}
-
 def allowed_file(filename):
     return '.' in filename and filename.rsplit('.', 1)[1].lower() in ALLOWED_EXTENSIONS
 
+# get presigned url from filename
 def get_presigned_url(filename, expires_in=300):
     return s3.generate_presigned_url(
         ClientMethod='get_object',
@@ -48,8 +48,8 @@ def get_presigned_url(filename, expires_in=300):
         ExpiresIn=expires_in
     )
 
-# 通用的上傳處理函式
-
+# 通用的上傳s3處理函式
+# return {'message', 'filename', 'presigned_url'}, status_code
 def _upload_bytes_to_s3(prefix, data_bytes, content_type, filename_hint):
     unique_id = uuid.uuid4().hex
     filename = f"{prefix}/{unique_id}_{secure_filename(filename_hint)}"
@@ -71,7 +71,7 @@ def _upload_bytes_to_s3(prefix, data_bytes, content_type, filename_hint):
     except NoCredentialsError:
         return {'error': 'AWS credentials not found'}, 500
 
-# clothes/avatar
+# upload image from frontend, prefix = clothes/avatar
 def upload_to_s3(prefix):
     if 'photo' not in request.files:
         return jsonify({'error': 'No file part'}), 400
@@ -91,6 +91,7 @@ def upload_to_s3(prefix):
 
     return jsonify({'error': 'Invalid file type'}), 400
 
+# upload image using url/presigned url 
 def upload_image_from_url(image_url: str, prefix: str, filename_hint: str = "try_on.jpg"):
     try:
         response = requests.get(image_url)
@@ -108,6 +109,7 @@ def upload_image_from_url(image_url: str, prefix: str, filename_hint: str = "try
     except Exception as e:
         return {'error': str(e)}, 500
 
+# download image from url/presigned url
 def download_image(url, label):
     res = requests.get(url)
     if res.status_code != 200:
@@ -116,6 +118,7 @@ def download_image(url, label):
     img.name = f"{label}.jpg"
     return img
 
+# delete image from s3
 def delete_image_from_s3(filename: str):
     try:
         s3.delete_object(
