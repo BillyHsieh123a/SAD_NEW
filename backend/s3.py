@@ -72,11 +72,11 @@ def _upload_bytes_to_s3(prefix, data_bytes, content_type, filename_hint):
         return {'error': 'AWS credentials not found'}, 500
 
 # upload image from frontend, prefix = clothes/avatar
-def upload_to_s3(prefix):
-    if 'photo' not in request.files:
-        return jsonify({'error': 'No file part'}), 400
+def upload_to_s3(file, prefix):
+    # if 'photo' not in request.files:
+    #     return jsonify({'error': 'No file part'}), 400
 
-    file = request.files['photo']
+    # file = request.files['photo']
 
     if file.filename == '':
         return jsonify({'error': 'No selected file'}), 400
