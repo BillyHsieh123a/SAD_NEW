@@ -16,6 +16,7 @@ def init_fitroom_api_key():
 # AVATAR_PATH = Path("avatar.jpg")
 # GARMENT_PATH = Path("strpshirt_white.jpg")
 
+# check the validity of avatar
 # def avatar_check(image_path, api_key):
 #     url = "https://platform.fitroom.app/api/tryon/input_check/v1/model"
 #     headers = {
@@ -37,6 +38,7 @@ def init_fitroom_api_key():
 # # 執行檢查
 # avatar_check(AVATAR_PATH, API_KEY)
 
+# check the validity of clothes
 # def clothes_check(image_path, api_key):
     # url = "https://platform.fitroom.app/api/tryon/input_check/v1/clothes"
     # headers = {
@@ -58,6 +60,7 @@ def init_fitroom_api_key():
 # # 執行衣服圖片檢查
 # clothes_check(GARMENT_PATH, API_KEY)
 
+# get tryon result
 def poll_tryon_result(task_id, poll_interval=2, max_retries=10):
     url = f"https://platform.fitroom.app/api/tryon/v2/tasks/{task_id}"
     headers = {
@@ -107,7 +110,8 @@ def poll_tryon_result(task_id, poll_interval=2, max_retries=10):
 
 # ✅ 執行輪詢與下載
 # poll_tryon_result(task_id=TASK_ID, api_key=API_KEY)
-    
+
+# create tryon task and get the result using poll_tryon_result() 
 def create_tryon_task(model_url, cloth_type, upper_url=None, lower_url=None, waittime_to_poll=12):
     url = "https://platform.fitroom.app/api/tryon/v2/tasks"
     headers = {"X-API-KEY": API_KEY}
@@ -161,6 +165,8 @@ def create_tryon_task(model_url, cloth_type, upper_url=None, lower_url=None, wai
 #     cloth_type="upper"
 # )
 
+# try on pass in model_filename, upper_filename, lower_filename
+# return {'message', 'filename', 'presigned_url'}, status_code
 def try_on(model_filename, upper_filename, lower_filename, cloth_types: list):
     model_url = get_presigned_url(model_filename)
     upper_url = get_presigned_url(upper_filename)
@@ -178,7 +184,6 @@ def try_on(model_filename, upper_filename, lower_filename, cloth_types: list):
     )
 
     return response_body, status_code # 'message', 'filename', 'presigned_url', status_code
-
 
 # init_fitroom_api_key()
 # model_filename = None
