@@ -95,59 +95,59 @@ def cache_image_on_server(result_image_src, user_id, clothes_id, color):
     get_psql_conn().commit()
 
 
-@try_on.post("/image")
-def try_on_clothes():
-    try:
-        user_id = session.get("user_id")
-        clothes_id = request.form.get("clothes-id")
-        color = request.form.get("color")
-        clothes_img_path = request.form.get("product-img-path")
-        user_image = request.files.get("user-image")  # flask FileStorage
+# @try_on.post("/image")
+# def try_on_clothes():
+#     try:
+#         user_id = session.get("user_id")
+#         clothes_id = request.form.get("clothes-id")
+#         color = request.form.get("color")
+#         clothes_img_path = request.form.get("product-img-path")
+#         user_image = request.files.get("user-image")  # flask FileStorage
         
-        # convert user image and clothes image to base64 utf8 strings
-        user_image_utf8 = base64.b64encode(user_image.read()).decode('utf-8')
-        clothes_image_req = requests.get(clothes_img_path)
-        clothes_image_utf8 = base64.b64encode(clothes_image_req.content).decode('utf-8')
+#         # convert user image and clothes image to base64 utf8 strings
+#         user_image_utf8 = base64.b64encode(user_image.read()).decode('utf-8')
+#         clothes_image_req = requests.get(clothes_img_path)
+#         clothes_image_utf8 = base64.b64encode(clothes_image_req.content).decode('utf-8')
         
-        # prepares for authorization
-        load_dotenv()
-        kolors_api_key_id = os.getenv('KOLORS_API_KEY_ID')
-        kolors_api_key_secret = os.getenv('KOLORS_API_KEY_SECRET')
-        authorization = encode_jwt_token(kolors_api_key_id, kolors_api_key_secret)
+#         # prepares for authorization
+#         load_dotenv()
+#         kolors_api_key_id = os.getenv('KOLORS_API_KEY_ID')
+#         kolors_api_key_secret = os.getenv('KOLORS_API_KEY_SECRET')
+#         authorization = encode_jwt_token(kolors_api_key_id, kolors_api_key_secret)
         
-        # send API request
-        req_res = post_api_request(authorization, user_image_utf8, clothes_image_utf8)
+#         # send API request
+#         req_res = post_api_request(authorization, user_image_utf8, clothes_image_utf8)
         
-        # retrieve task ID
-        task_id = ""
-        if req_res.status_code == 200:
-            req_res_data = req_res.json()
-            task_id = req_res_data["data"]["task_id"]
-        else:
-            return jsonify({"success": 0}), req_res.status_code
+#         # retrieve task ID
+#         task_id = ""
+#         if req_res.status_code == 200:
+#             req_res_data = req_res.json()
+#             task_id = req_res_data["data"]["task_id"]
+#         else:
+#             return jsonify({"success": 0}), req_res.status_code
         
-        # poll until task is complete
-        for i in range(120):  # 2 minutes timeout
-            time.sleep(1)
-            poll_res = poll_task_status(authorization, task_id)
-            poll_res_data = poll_res.json()
+#         # poll until task is complete
+#         for i in range(120):  # 2 minutes timeout
+#             time.sleep(1)
+#             poll_res = poll_task_status(authorization, task_id)
+#             poll_res_data = poll_res.json()
             
-            if poll_res_data["data"]["task_status"] == "succeed":
-                result_image_src = poll_res_data["data"]["task_result"]["images"][0]["url"]
-                cache_image_on_server(result_image_src, user_id, clothes_id, color)
-                return jsonify({"success": 1, "tryon_image": result_image_src})
-            elif poll_res_data["data"]["task_status"] == "failed":
-                return jsonify({"error": "Image generation task failed"}), 500
+#             if poll_res_data["data"]["task_status"] == "succeed":
+#                 result_image_src = poll_res_data["data"]["task_result"]["images"][0]["url"]
+#                 cache_image_on_server(result_image_src, user_id, clothes_id, color)
+#                 return jsonify({"success": 1, "tryon_image": result_image_src})
+#             elif poll_res_data["data"]["task_status"] == "failed":
+#                 return jsonify({"error": "Image generation task failed"}), 500
         
-        return jsonify({"error": "Image generation timed out"}), 504
-    except Exception as e:
-        get_psql_conn().rollback()
-        print(e)
-        return jsonify({"error": str(e)}), 500
+#         return jsonify({"error": "Image generation timed out"}), 504
+#     except Exception as e:
+#         get_psql_conn().rollback()
+#         print(e)
+#         return jsonify({"error": str(e)}), 500
 
 
-@try_on.get("/image")
-def try_on_query_cache():
+# @try_on.get("/image")
+# def try_on_query_cache():
     try:
         user_id = session.get("user_id")
         clothes_id = request.json["clothes_id"]
@@ -176,3 +176,28 @@ def try_on_query_cache():
         print(e)
         get_psql_conn().rollback()
         return jsonify({"error": str(e)}), 500
+    
+@try_on.post("/image/result")
+def upload_result():
+    # TODO: Implement the upload_result functionality
+    return jsonify({"message": "upload_result endpoint not implemented"}), 501
+
+@try_on.post("/image/clothes")
+def upload_clothes():
+    # TODO: Implement the upload_clothes functionality
+    return jsonify({"message": "upload_clothes endpoint not implemented"}), 501
+    
+@try_on.post("/image/avatar")
+def upload_avatar():
+    # TODO: Implement the upload_avatar functionality
+    return jsonify({"message": "upload_avatar endpoint not implemented"}), 501
+
+@try_on.delete("/image/clothes")
+def delete_clothes():
+    # TODO: Implement the delete_clothes functionality
+    return jsonify({"message": "delete_clothes endpoint not implemented"}), 501
+
+@try_on.delete("/image/avatar")
+def delete_avatar():
+    # TODO: Implement the delete_avatar functionality
+    return jsonify({"message": "delete_avatar endpoint not implemented"}), 501
