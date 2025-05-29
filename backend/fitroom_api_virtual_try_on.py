@@ -185,6 +185,7 @@ def try_on(model_filename, upper_filename, lower_filename, cloth_types: list):
 
     return response_body, status_code # 'message', 'filename', 'presigned_url', status_code
 
+# example
 # init_fitroom_api_key()
 # model_filename = None
 # upper_filename = None
