@@ -1,3 +1,2 @@
-backend/__pycache__/db.cpython-312.pyc
-backend/__pycache__/page_serve.cpython-312.pyc
-backend/__pycache__/try_on.cpython-312.pyc
+**/__pycache__/
+*.env

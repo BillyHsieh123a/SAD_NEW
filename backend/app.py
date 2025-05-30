@@ -16,7 +16,6 @@ CORS(app)
 app.register_blueprint(try_on)
 app.register_blueprint(page_serve)
 
-
 # Initialize the app and connect to the database.
 def init_app():
     init_db_conn()

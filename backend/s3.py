@@ -18,6 +18,7 @@ s3_setting = {
 
 s3 = None
 def init_s3():
+    global s3
     global s3_setting
     load_dotenv()
     s3_setting['S3_BUCKET'] = os.getenv("S3_BUCKET")
@@ -30,14 +31,14 @@ def init_s3():
     #                 aws_access_key_id=s3_setting['S3_ACCESS_KEY'],
     #                 aws_secret_access_key=s3_setting['S3_SECRET_KEY'])
 
-    global s3
     s3 = boto3.client('s3', region_name=s3_setting['S3_REGION']) 
 
 ALLOWED_EXTENSIONS = {'png', 'jpg', 'jpeg'}
-
+ALLOWED_MIME_TYPES = {'image/png', 'image/jpeg'}
 def allowed_file(filename):
     return '.' in filename and filename.rsplit('.', 1)[1].lower() in ALLOWED_EXTENSIONS
 
+# get presigned url from filename
 def get_presigned_url(filename, expires_in=300):
     return s3.generate_presigned_url(
         ClientMethod='get_object',
@@ -48,8 +49,8 @@ def get_presigned_url(filename, expires_in=300):
         ExpiresIn=expires_in
     )
 
-# 通用的上傳處理函式
-
+# 通用的上傳s3處理函式
+# return {'message', 'filename', 'presigned_url'}, status_code
 def _upload_bytes_to_s3(prefix, data_bytes, content_type, filename_hint):
     unique_id = uuid.uuid4().hex
     filename = f"{prefix}/{unique_id}_{secure_filename(filename_hint)}"
@@ -71,17 +72,15 @@ def _upload_bytes_to_s3(prefix, data_bytes, content_type, filename_hint):
     except NoCredentialsError:
         return {'error': 'AWS credentials not found'}, 500
 
-# clothes/avatar
-def upload_to_s3(prefix):
-    if 'photo' not in request.files:
-        return jsonify({'error': 'No file part'}), 400
-
-    file = request.files['photo']
-
+# upload image from frontend, prefix = clothes/avatar
+def upload_to_s3(file, prefix):
     if file.filename == '':
         return jsonify({'error': 'No selected file'}), 400
 
     if file and allowed_file(file.filename):
+        if file.content_type not in ALLOWED_MIME_TYPES:
+            return jsonify({'error': 'Unsupported file type'}), 400
+
         return _upload_bytes_to_s3(
             prefix=prefix,
             data_bytes=file.read(),
@@ -91,6 +90,7 @@ def upload_to_s3(prefix):
 
     return jsonify({'error': 'Invalid file type'}), 400
 
+# upload image using url/presigned url 
 def upload_image_from_url(image_url: str, prefix: str, filename_hint: str = "try_on.jpg"):
     try:
         response = requests.get(image_url)
@@ -108,6 +108,7 @@ def upload_image_from_url(image_url: str, prefix: str, filename_hint: str = "try
     except Exception as e:
         return {'error': str(e)}, 500
 
+# download image from url/presigned url
 def download_image(url, label):
     res = requests.get(url)
     if res.status_code != 200:
@@ -116,6 +117,7 @@ def download_image(url, label):
     img.name = f"{label}.jpg"
     return img
 
+# delete image from s3
 def delete_image_from_s3(filename: str):
     try:
         s3.delete_object(
@@ -126,3 +128,10 @@ def delete_image_from_s3(filename: str):
     except Exception as e:
         return {'error': f'Failed to delete: {str(e)}'}, 500
 
+# example
+# init_s3()
+# sample_image_url = "https://shoplineimg.com/5f4760ee70e52e003f4199b5/657bfa1a28b4fe001af779e3/800x.jpg"
+# response, status_code = upload_image_from_url(image_url = sample_image_url, prefix = "avatar", filename_hint = "avatar.jpg")
+# print(response, status_code)
+
+# print(delete_image_from_s3('avatar/84a49a0c11fe4128996d1e3507c101b1_avatar.jpg'))

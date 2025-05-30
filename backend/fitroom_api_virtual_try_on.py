@@ -16,6 +16,7 @@ def init_fitroom_api_key():
 # AVATAR_PATH = Path("avatar.jpg")
 # GARMENT_PATH = Path("strpshirt_white.jpg")
 
+# check the validity of avatar
 # def avatar_check(image_path, api_key):
 #     url = "https://platform.fitroom.app/api/tryon/input_check/v1/model"
 #     headers = {
@@ -37,6 +38,7 @@ def init_fitroom_api_key():
 # # 執行檢查
 # avatar_check(AVATAR_PATH, API_KEY)
 
+# check the validity of clothes
 # def clothes_check(image_path, api_key):
     # url = "https://platform.fitroom.app/api/tryon/input_check/v1/clothes"
     # headers = {
@@ -58,6 +60,7 @@ def init_fitroom_api_key():
 # # 執行衣服圖片檢查
 # clothes_check(GARMENT_PATH, API_KEY)
 
+# get tryon result
 def poll_tryon_result(task_id, poll_interval=2, max_retries=10):
     url = f"https://platform.fitroom.app/api/tryon/v2/tasks/{task_id}"
     headers = {
@@ -108,80 +111,7 @@ def poll_tryon_result(task_id, poll_interval=2, max_retries=10):
 # ✅ 執行輪詢與下載
 # poll_tryon_result(task_id=TASK_ID, api_key=API_KEY)
 
-# def create_tryon_task_v2(cloth_path, model_path, cloth_type, waittime_to_poll=12):
-#     url = "https://platform.fitroom.app/api/tryon/v2/tasks"
-#     headers = {
-#         "X-API-KEY": API_KEY
-#     }
-
-#     with cloth_path.open("rb") as cloth_img, model_path.open("rb") as model_img:
-#         files = {
-#             "cloth_image": cloth_img,
-#             "model_image": model_img
-#         }
-#         data = {
-#             "cloth_type": cloth_type  # upper / lower / full
-#         }
-
-#         res = requests.post(url, headers=headers, files=files, data=data)
-
-#     print("Status Code:", res.status_code)
-#     try:
-#         response_json = res.json()
-#         print("Response JSON:", response_json)
-#         TASK_ID = response_json["task_id"]
-#         time.sleep(waittime_to_poll)
-#         poll_tryon_result(task_id=TASK_ID)
-
-#     except Exception as e:
-#         print("❌ Failed to parse response:", e)
-#         print("Raw response:", res.text)
-
-# def create_tryon_task_v2(cloth_url, model_url, cloth_type, waittime_to_poll=12):
-#     url = "https://platform.fitroom.app/api/tryon/v2/tasks"
-#     headers = {
-#         "X-API-KEY": API_KEY
-#     }
-
-#     # 下載 cloth image from presigned url
-#     cloth_response = requests.get(cloth_url)
-#     if cloth_response.status_code != 200:
-#         print("❌ Failed to download cloth image.")
-#         return
-#     cloth_file = BytesIO(cloth_response.content)
-#     cloth_file.name = "cloth.jpg"
-
-#     # 下載 model image from presigned url
-#     model_response = requests.get(model_url)
-#     if model_response.status_code != 200:
-#         print("❌ Failed to download model image.")
-#         return
-#     model_file = BytesIO(model_response.content)
-#     model_file.name = "model.jpg"
-
-#     files = {
-#         "cloth_image": (cloth_file.name, cloth_file, "image/jpeg"),
-#         "model_image": (model_file.name, model_file, "image/jpeg")
-#     }
-
-#     data = {
-#         "cloth_type": cloth_type  # upper / lower / full
-#     }
-
-#     res = requests.post(url, headers=headers, files=files, data=data)
-
-#     print("Status Code:", res.status_code)
-#     try:
-#         response_json = res.json()
-#         print("Response JSON:", response_json)
-#         TASK_ID = response_json["task_id"]
-#         time.sleep(waittime_to_poll)
-#         poll_tryon_result(task_id=TASK_ID, api_key=API_KEY)
-
-#     except Exception as e:
-#         print("❌ Failed to parse response:", e)
-#         print("Raw response:", res.text)
-        
+# create tryon task and get the result using poll_tryon_result() 
 def create_tryon_task(model_url, cloth_type, upper_url=None, lower_url=None, waittime_to_poll=12):
     url = "https://platform.fitroom.app/api/tryon/v2/tasks"
     headers = {"X-API-KEY": API_KEY}
@@ -235,6 +165,8 @@ def create_tryon_task(model_url, cloth_type, upper_url=None, lower_url=None, wai
 #     cloth_type="upper"
 # )
 
+# try on pass in model_filename, upper_filename, lower_filename
+# return {'message', 'filename', 'presigned_url'}, status_code
 def try_on(model_filename, upper_filename, lower_filename, cloth_types: list):
     model_url = get_presigned_url(model_filename)
     upper_url = get_presigned_url(upper_filename)
@@ -253,12 +185,15 @@ def try_on(model_filename, upper_filename, lower_filename, cloth_types: list):
 
     return response_body, status_code # 'message', 'filename', 'presigned_url', status_code
 
-
-
+# example
 # init_fitroom_api_key()
 # model_filename = None
 # upper_filename = None
 # lower_filename = None
 # cloth_types = []
+# import time
+# start = time.time()
 # response_body, status_code = try_on(model_filename, upper_filename, lower_filename, cloth_types)
+# end = time.time()
 # print(response_body, status_code) #{'message': , 'presigned_url':}, 200
+# print(end - start)
