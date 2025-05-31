@@ -26,7 +26,8 @@ document.addEventListener('DOMContentLoaded', () => {
     initializeUploadZones();
     updateAIComment();
     loadUserPhoto();
-    loadUserClothes(); // <-- Add this line
+    loadUserClothes();
+    loadTryOnResults(); // <-- Add this line
     setTimeout(() => {
         // Pre-load sample items if needed
     }, 1000);
@@ -397,45 +398,49 @@ function updateCategoryCounts() {
 // AI Try-On Generation
 // =======================
 
-function generateTryOn() {
+async function generateTryOn() {
     if (!selectedClothes.user) {
         alert('Please upload your photo first!');
         return;
     }
 
-    if (selectedClothes.tops.length === 0 && selectedClothes.bottoms.length === 0) {
+    // Get selected top and bottom IDs (only one per category can be selected)
+    const selectedTop = selectedClothes.tops.find(item => selectedItems.has(item.id));
+    const selectedBottom = selectedClothes.bottoms.find(item => selectedItems.has(item.id));
+
+    if (!selectedTop && !selectedBottom) {
         alert('Please select at least one clothing item!');
         return;
     }
 
     showLoading(true);
 
-    // Simulate AI processing
-    setTimeout(() => {
-        // Create composite image (simplified simulation)
-        const canvas = document.createElement('canvas');
-        const ctx = canvas.getContext('2d');
-        canvas.width = 400;
-        canvas.height = 600;
+    // Prepare payload
+    const payload = {
+        top_id: selectedTop ? selectedTop.id : null,
+        bottom_id: selectedBottom ? selectedBottom.id : null
+    };
 
-        const userImg = new Image();
-        userImg.onload = () => {
-            // Draw model
-            ctx.drawImage(userImg, 0, 0, canvas.width, canvas.height);
-            
-            // Add clothing overlay effect
-            ctx.globalAlpha = 0.7;
-            ctx.fillStyle = 'rgba(102, 126, 234, 0.2)';
-            ctx.fillRect(0, 0, canvas.width, canvas.height);
-            
-            // Convert to result
-            const resultSrc = canvas.toDataURL();
-            showTryOnResult(resultSrc);
-            showLoading(false);
-            generateAIComment();
-        };
-        userImg.src = selectedClothes.user;
-    }, 2000);
+    // Call backend to start try-on
+    fetch('/api/try-on/', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        credentials: 'include',
+        body: JSON.stringify(payload)
+    })
+    .then(res => res.json())
+    .then(result => {
+        showLoading(false);
+        if (result && result.image_url && result.comments) {
+            showTryOnResult(result.image_url, result.comments, result.try_on_id);
+        } else {
+            alert(result.error || 'Try-on failed.');
+        }
+    })
+    .catch(err => {
+        showLoading(false);
+        alert('Try-on failed: ' + err);
+    });
 }
 
 function showLoading(show) {
@@ -450,7 +455,7 @@ function showLoading(show) {
     }
 }
 
-function showTryOnResult(src) {
+function showTryOnResult(src, comments, tryOnId) {
     const resultImage = document.getElementById('result-image');
     const placeholder = document.getElementById('result-placeholder');
     
@@ -461,22 +466,42 @@ function showTryOnResult(src) {
     
     currentTryOnResult = src;
 
-    // Always store the result, even if it's a duplicate
-    tryOnResults.push(src);
+    // Store both image and comments
+    tryOnResults.push({ try_on_id: tryOnId, image_url: src, comments: comments });
     selectedResultIndex = tryOnResults.length - 1;
     renderTryOnGallery();
+
+    // Show the comment for this result
+    document.getElementById('ai-comment-text').textContent = comments || '';
 }
 
+// Show the selected try-on result image and comment
+function showGalleryResult(idx) {
+    const result = tryOnResults[idx];
+    if (!result) return;
+    const resultImage = document.getElementById('result-image');
+    const placeholder = document.getElementById('result-placeholder');
+    resultImage.src = result.image_url;
+    resultImage.classList.remove('hidden');
+    resultImage.classList.add('fade-in');
+    placeholder.classList.add('hidden');
+    currentTryOnResult = result.image_url;
+
+    // Show the comment for this result
+    document.getElementById('ai-comment-text').textContent = result.comments || '';
+}
+
+// Render the gallery thumbnails
 function renderTryOnGallery() {
     const gallery = document.getElementById('tryon-gallery');
     gallery.innerHTML = '';
-    tryOnResults.forEach((src, idx) => {
+    tryOnResults.forEach((item, idx) => {
         const wrapper = document.createElement('div');
         wrapper.style.position = 'relative';
         wrapper.style.display = 'inline-block';
 
         const img = document.createElement('img');
-        img.src = src;
+        img.src = item.image_url;
         img.alt = `Try-On Result ${idx + 1}`;
         if (idx === selectedResultIndex) img.classList.add('selected');
         img.addEventListener('click', () => {
@@ -485,22 +510,21 @@ function renderTryOnGallery() {
             renderTryOnGallery();
         });
 
-        // Delete button
+        // Add delete button
         const delBtn = document.createElement('button');
-        delBtn.textContent = '×';
-        delBtn.title = 'Delete this result';
+        delBtn.textContent = '✕';
+        delBtn.title = 'Delete this try-on result';
         delBtn.style.position = 'absolute';
         delBtn.style.top = '2px';
         delBtn.style.right = '2px';
-        delBtn.style.background = 'rgba(255,0,0,0.8)';
-        delBtn.style.color = '#fff';
+        delBtn.style.background = 'rgba(255,255,255,0.8)';
         delBtn.style.border = 'none';
         delBtn.style.borderRadius = '50%';
-        delBtn.style.width = '20px';
-        delBtn.style.height = '20px';
         delBtn.style.cursor = 'pointer';
-        delBtn.style.fontWeight = 'bold';
-        delBtn.style.zIndex = '2';
+        delBtn.style.width = '22px';
+        delBtn.style.height = '22px';
+        delBtn.style.fontSize = '16px';
+        delBtn.style.lineHeight = '20px';
         delBtn.addEventListener('click', (e) => {
             e.stopPropagation();
             deleteTryOnResult(idx);
@@ -510,18 +534,6 @@ function renderTryOnGallery() {
         wrapper.appendChild(delBtn);
         gallery.appendChild(wrapper);
     });
-}
-
-function showGalleryResult(idx) {
-    const src = tryOnResults[idx];
-    if (!src) return;
-    const resultImage = document.getElementById('result-image');
-    const placeholder = document.getElementById('result-placeholder');
-    resultImage.src = src;
-    resultImage.classList.remove('hidden');
-    resultImage.classList.add('fade-in');
-    placeholder.classList.add('hidden');
-    currentTryOnResult = src;
 }
 
 // =======================
@@ -691,7 +703,9 @@ function downloadResult() {
         const link = document.createElement('a');
         link.download = 'virtual-tryon-result.png';
         link.href = dataUrl;
+        document.body.appendChild(link); // <-- append to DOM
         link.click();
+        document.body.removeChild(link); // <-- remove after click
     });
 }
 
@@ -766,23 +780,37 @@ async function deleteSelected() {
 }
 
 function deleteTryOnResult(idx) {
-    tryOnResults.splice(idx, 1);
-    // Adjust selectedResultIndex if needed
-    if (selectedResultIndex >= tryOnResults.length) {
-        selectedResultIndex = tryOnResults.length - 1;
-    }
-    // Show the new selected result or hide if none left
-    if (selectedResultIndex >= 0) {
-        showGalleryResult(selectedResultIndex);
-    } else {
-        // No results left
-        const resultImage = document.getElementById('result-image');
-        const placeholder = document.getElementById('result-placeholder');
-        resultImage.classList.add('hidden');
-        placeholder.classList.remove('hidden');
-        currentTryOnResult = null;
-    }
-    renderTryOnGallery();
+    const result = tryOnResults[idx];
+    if (!result || !result.try_on_id) return;
+
+    fetch(`/api/try-on/${result.try_on_id}`, {
+        method: 'DELETE',
+        credentials: 'include'
+    })
+    .then(res => res.json())
+    .then(data => {
+        // Remove from frontend state
+        tryOnResults.splice(idx, 1);
+        if (selectedResultIndex >= tryOnResults.length) {
+            selectedResultIndex = tryOnResults.length - 1;
+        }
+        if (selectedResultIndex >= 0) {
+            showGalleryResult(selectedResultIndex);
+        } else {
+            // No results left
+            const resultImage = document.getElementById('result-image');
+            const placeholder = document.getElementById('result-placeholder');
+            resultImage.classList.add('hidden');
+            placeholder.classList.remove('hidden');
+            currentTryOnResult = null;
+            document.getElementById('ai-comment-text').textContent = "";
+        }
+        renderTryOnGallery();
+    })
+    .catch(err => {
+        alert('Failed to delete try-on result.');
+        console.error(err);
+    });
 }
 
 function loadUserPhoto() {
@@ -823,5 +851,29 @@ function loadUserClothes() {
         })
         .catch(err => {
             console.error('Failed to load user clothes:', err);
+        });
+}
+
+function loadTryOnResults() {
+    fetch('/api/try-on/', { credentials: 'include' })
+        .then(res => res.json())
+        .then(results => {
+            tryOnResults = [];
+            selectedResultIndex = -1;
+            if (Array.isArray(results) && results.length > 0) {
+                results.forEach((item, idx) => {
+                    tryOnResults.push({
+                        try_on_id: item.try_on_id,
+                        image_url: item.image_url,
+                        comments: item.comments
+                    });
+                });
+                selectedResultIndex = 0;
+                showGalleryResult(0);
+            }
+            renderTryOnGallery();
+        })
+        .catch(err => {
+            console.error('Failed to load try-on results:', err);
         });
 }

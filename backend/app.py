@@ -4,7 +4,7 @@ from db import init_db_conn  # <-- remove close_psql_conn
 from flask_cors import CORS
 
 from login import login_bp
-from try_on import try_on
+from try_on_tryon import tryon_bp
 from page_serve import page_serve
 from s3 import init_s3
 from fitroom_api_virtual_try_on import init_fitroom_api_key
@@ -17,7 +17,7 @@ serverURL = "http://127.0.0.1:5000"
 app = Flask(__name__, template_folder="../frontend/html", static_folder="../frontend/assets")
 CORS(app)
 app.register_blueprint(login_bp)
-app.register_blueprint(try_on)
+app.register_blueprint(tryon_bp)
 app.register_blueprint(page_serve)
 app.register_blueprint(user_photo_bp)
 app.register_blueprint(user_clothes_bp)

@@ -16,7 +16,7 @@ def get_comments(image_url): # need to pass OPENAI_API_KEY and image url
     response = client.chat.completions.create(
         model="gpt-4o",
         messages=[
-            {"role": "system", "content": "你是一位專業時尚顧問。"},
+            {"role": "system", "content": "You are a professional fashion consultant."},
             {
                 "role": "user",
                 "content": [
@@ -28,45 +28,18 @@ def get_comments(image_url): # need to pass OPENAI_API_KEY and image url
                     },
                     {
                         "type": "text",
-                        "text": """
-                            請根據這張穿搭照給出購買建議與穿搭評價，包括整體評價、推薦建議。
-                            【請輸出以下格式】
-
-                            ### 整體評價：
-                            - 風格：請填寫
-                            - 顏色搭配：請填寫
-                            - 合身度與版型：請填寫
-                            - 適合場合：請填寫（例如約會、上班、日常）
-
-                            ### 推薦建議（結構化）：
-                            請針對以下三種服飾推薦類型，分別輸出三段語意濃縮的文字描述。每段請直接陳述內容，不要加上任何標題或分類詞，例如「推薦可搭配的服飾：」這類前綴都不需要。請使用中性、描述性的語氣，避免口語化與列點，並將每段控制在 2~3 句，方便後續進行語意向量嵌入（embedding）。
-                            推薦類型如下：
-                            1. 可搭配的服飾建議（如外套、鞋款、包包等）
-                            2. 相似風格的商品建議（如類似風格或顏色的上衣）
-                            3. 根據體型或膚色更適合的服飾建議（如剪裁、色彩）
-
-                            請使用繁體中文輸出。
-                        """
+                        "text": (
+                            "Please give a very concise, single-paragraph overall outfit comment and suggestion in English, "
+                            "no more than 50 words. Do not use bullet points, titles, or line breaks."
+                        )
                     }
                 ]
             }
         ]
     )
 
-    # print(response.choices[0].message.content)
-    ai_comment = response.choices[0].message.content
-
-    split_marker = "### 推薦建議："
-
-    if split_marker in ai_comment:
-        overall_comment, recommendation_comment = ai_comment.split(split_marker, 1)
-        overall_comment = overall_comment.replace("### 整體評價：", "").strip()
-        recommendation_comment = recommendation_comment.strip()
-    else:
-        overall_comment = ai_comment.strip()
-        recommendation_comment = ""
-
-    return overall_comment, recommendation_comment
+    ai_comment = response.choices[0].message.content.strip()
+    return ai_comment, ""  # Only one concise comment, no recommendation section
 
     # def clean_recommendation_text(raw_text: str) -> str:
     #     # 去除 markdown 編號與強調符號
