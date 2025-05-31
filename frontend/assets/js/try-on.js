@@ -134,17 +134,28 @@ function updateUploadProgress(current, total) {
 function handleFiles(files, category) {
     Array.from(files).forEach(file => {
         if (file.type.startsWith('image/')) {
-            const reader = new FileReader();
-            reader.onload = (e) => {
-                if (category === 'model') {
-                    setModelImage(e.target.result);
-                } else if (category === 'bulk') {
-                    // No longer needed, handled in dropHandler
-                } else {
+            if (category === 'model') {
+                uploadModelPhotoToBackend(file).then(res => {
+                    if (res && (res.presigned_url || res.filepath)) {
+                        setModelImage(res.presigned_url || `/api/s3/proxy/${res.filepath}`);
+                        selectedClothes.model_id = res.photo_id;
+                    } else {
+                        console.error('Failed to upload model photo:', res); // Debug message
+                        alert('Failed to upload model photo');
+                    }
+                }).catch(err => {
+                    console.error('Error uploading model photo:', err); // Debug message
+                    alert('Failed to upload model photo');
+                });
+            } else if (category === 'bulk') {
+                // No longer needed, handled in dropHandler
+            } else {
+                const reader = new FileReader();
+                reader.onload = (e) => {
                     addClothingItem(e.target.result, category, file.name);
-                }
-            };
-            reader.readAsDataURL(file);
+                };
+                reader.readAsDataURL(file);
+            }
         }
     });
 }
@@ -585,6 +596,19 @@ function shareResult() {
             }
         }
     });
+}
+
+// Model photo upload to backend
+async function uploadModelPhotoToBackend(file) {
+    const formData = new FormData();
+    formData.append('model-photo', file);
+
+    const response = await fetch('/api/try-on/image/model', {
+        method: 'POST',
+        body: formData,
+        credentials: 'include'
+    });
+    return response.json();
 }
 
 // Initialize on page load
