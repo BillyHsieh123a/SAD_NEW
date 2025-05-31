@@ -542,11 +542,19 @@ function renderTryOnGallery() {
 
 function updateAIComment() {
     const comments = [
-        "Looking great! Ready to try on some clothes?",
-        "Perfect pose! Now let's see how these clothes look on you.",
-        "Great selection! This combination will look amazing.",
-        "Excellent choice! The colors will complement your style.",
-        "Fantastic! This outfit has potential to be your new favorite."
+        "Drag it, drop it, try it!",
+        "Unleash your style with Dressique!",
+        "Your next favorite look is just a click away.",
+        "Mix, match, and discover your best outfit!",
+        "Fashion fun starts here—give it a try!",
+        "Ready to see yourself in a new style?",
+        "Upload, select, and let AI do the magic!",
+        "Your virtual fitting room is open!",
+        "Let’s create your signature look!",
+        "Try on, shine on!",
+        "AI styling magic awaits you!",
+        "Step into your style adventure!",
+        "Express yourself—try something new today!"
     ];
     
     const randomComment = comments[Math.floor(Math.random() * comments.length)];
@@ -555,14 +563,11 @@ function updateAIComment() {
 
 function generateAIComment() {
     const styleComments = [
-        "This outfit combination creates a perfect balance between comfort and style!",
-        "The colors work beautifully together - you have a great eye for fashion!",
-        "This look is absolutely stunning on you. The fit is perfect!",
-        "What a fantastic choice! This outfit really enhances your natural style.",
-        "You're rocking this look! The proportions are spot-on.",
-        "This ensemble is both trendy and timeless - a winning combination!",
-        "Perfect styling! This outfit would work great for multiple occasions.",
-        "The way these pieces come together is truly impressive. Great taste!"
+        "Go ahead, try on a new look!",
+        "Let AI inspire your next outfit.",
+        "Fashion is fun—experiment with your wardrobe!",
+        "See yourself in a whole new way.",
+        "Your style journey starts now!"
     ];
     
     const comment = styleComments[Math.floor(Math.random() * styleComments.length)];
@@ -838,8 +843,8 @@ function loadUserClothes() {
                     if (category) {
                         selectedClothes[category].push({
                             id: item.clothes_id,
-                            src: item.url,
-                            name: `Clothes #${item.clothes_id}`,
+                            src: item.presigned_url || item.url || item.filepath,
+                            name: item.name || `Clothes #${item.clothes_id}`,
                             category: category
                         });
                     }
@@ -848,32 +853,9 @@ function loadUserClothes() {
             renderClothingGrid('tops');
             renderClothingGrid('bottoms');
             updateCategoryCounts();
+            updateAIComment();
         })
         .catch(err => {
             console.error('Failed to load user clothes:', err);
-        });
-}
-
-function loadTryOnResults() {
-    fetch('/api/try-on/', { credentials: 'include' })
-        .then(res => res.json())
-        .then(results => {
-            tryOnResults = [];
-            selectedResultIndex = -1;
-            if (Array.isArray(results) && results.length > 0) {
-                results.forEach((item, idx) => {
-                    tryOnResults.push({
-                        try_on_id: item.try_on_id,
-                        image_url: item.image_url,
-                        comments: item.comments
-                    });
-                });
-                selectedResultIndex = 0;
-                showGalleryResult(0);
-            }
-            renderTryOnGallery();
-        })
-        .catch(err => {
-            console.error('Failed to load try-on results:', err);
         });
 }

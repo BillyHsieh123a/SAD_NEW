@@ -23,12 +23,35 @@
     </header>
 
     <main class="main-container">
-        <!-- Left Panel - Clothing Categories -->
-        <div class="panel">
+        <!-- Left Panel - User Photo -->
+        <div class="panel user-panel">
+            <h2 class="section-title">
+                <i class="fas fa-user"></i> Your Photo
+            </h2>
+            <div class="upload-zone" id="user-upload" ondrop="dropHandler(event, 'user')" ondragover="dragOverHandler(event)" ondragleave="dragLeaveHandler(event)">
+                <i class="fas fa-camera"></i>
+                <p>Upload Your Photo<br>for Virtual Try-On</p>
+                <input type="file" id="user-file" accept="image/*" hidden>
+            </div>
+            <div class="user-container" id="user-container">
+                <div class="placeholder-text">
+                    <i class="fas fa-user" style="font-size: 4rem; color: #ccc; margin-bottom: 1rem;"></i>
+                    <p style="color: #999;">Upload your photo to get started</p>
+                </div>
+                <img id="user-image" class="user-image hidden" alt="Your Photo">
+            </div>
+            <div class="controls">
+                <button class="btn btn-secondary" onclick="clearUser()">
+                    <i class="fas fa-trash"></i> Clear
+                </button>
+            </div>
+        </div>
+
+        <!-- Center Panel - Clothing Categories -->
+        <div class="panel clothes-panel">
             <h2 class="section-title">
                 <i class="fas fa-tshirt"></i> Clothing Items
             </h2>
-            
             <!-- Bulk Upload Section -->
             <div class="bulk-upload-section">
                 <div class="upload-zone bulk-upload" id="bulk-upload" ondrop="dropHandler(event, 'bulk')" ondragover="dragOverHandler(event)" ondragleave="dragLeaveHandler(event)">
@@ -44,7 +67,6 @@
                     <p id="progress-text">0 of 0 files uploaded</p>
                 </div>
             </div>
-
             <!-- Category Tabs -->
             <div class="category-tabs">
                 <button class="tab-btn active" onclick="switchCategory('tops')" data-category="tops">
@@ -72,7 +94,6 @@
                     <div class="clothes-grid" id="bottoms-grid"></div>
                 </div>
             </div>
-
             <!-- Clothing Management Tools -->
             <div class="clothing-tools">
                 <button class="btn btn-secondary" onclick="deleteSelected()">
@@ -81,39 +102,11 @@
             </div>
         </div>
 
-        <!-- Center Panel - User Photo -->
-        <div class="panel center-panel">
-            <h2 class="section-title">
-                <i class="fas fa-user"></i> Your Photo
-            </h2>
-            
-            <div class="upload-zone" id="user-upload" ondrop="dropHandler(event, 'user')" ondragover="dragOverHandler(event)" ondragleave="dragLeaveHandler(event)">
-                <i class="fas fa-camera"></i>
-                <p>Upload Your Photo<br>for Virtual Try-On</p>
-                <input type="file" id="user-file" accept="image/*" hidden>
-            </div>
-
-            <div class="user-container" id="user-container">
-                <div class="placeholder-text">
-                    <i class="fas fa-user" style="font-size: 4rem; color: #ccc; margin-bottom: 1rem;"></i>
-                    <p style="color: #999;">Upload your photo to get started</p>
-                </div>
-                <img id="user-image" class="user-image hidden" alt="Your Photo">
-            </div>
-
-            <div class="controls">
-                <button class="btn btn-secondary" onclick="clearUser()">
-                    <i class="fas fa-trash"></i> Clear
-                </button>
-            </div>
-        </div>
-
-        <!-- Right Panel - Results -->
+        <!-- Right Panel - AI Try-On Results -->
         <div class="panel result-panel">
             <h2 class="section-title">
                 <i class="fas fa-magic"></i> AI Try-On Results
             </h2>
-            
             <div class="ai-result" id="ai-result">
                 <div class="loading" id="loading">
                     <div class="spinner"></div>
@@ -125,14 +118,11 @@
                 </div>
                 <img id="result-image" class="hidden" alt="Try-on Result">
             </div>
-
             <div class="tryon-gallery" id="tryon-gallery"></div>
-
             <div class="ai-comment">
                 <h3><i class="fas fa-robot"></i> AI Styling Assistant</h3>
-                <p id="ai-comment-text">Upload your photo and select clothing items to get personalized styling recommendations!</p>
+                <p id="ai-comment-text"></p>
             </div>
-
             <div class="controls">
                 <button class="btn btn-secondary" onclick="downloadResult()">
                     <i class="fas fa-download"></i> Download
