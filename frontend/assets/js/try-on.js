@@ -182,6 +182,9 @@ function handleFiles(files, category) {
                 };
                 reader.readAsDataURL(file);
             }
+                };
+                reader.readAsDataURL(file);
+            }
         }
     });
 }
