@@ -4,7 +4,6 @@ from werkzeug.utils import secure_filename
 from botocore.exceptions import NoCredentialsError
 import os
 from dotenv import load_dotenv
-import uuid
 from io import BytesIO
 import requests
 
@@ -33,8 +32,8 @@ def init_s3():
 
     s3 = boto3.client('s3', region_name=s3_setting['S3_REGION']) 
 
-ALLOWED_EXTENSIONS = {'png', 'jpg', 'jpeg'}
-ALLOWED_MIME_TYPES = {'image/png', 'image/jpeg'}
+ALLOWED_EXTENSIONS = {'png', 'jpg', 'jpeg', 'avif', 'webp', 'heic'}
+ALLOWED_MIME_TYPES = {'image/png', 'image/jpeg', 'image/avif', 'image/webp', 'image/heic'}
 def allowed_file(filename):
     return '.' in filename and filename.rsplit('.', 1)[1].lower() in ALLOWED_EXTENSIONS
 
@@ -52,8 +51,10 @@ def get_presigned_url(filename, expires_in=300):
 # 通用的上傳s3處理函式
 # return {'message', 'filename', 'presigned_url'}, status_code
 def _upload_bytes_to_s3(prefix, data_bytes, content_type, filename_hint):
+    import uuid
     unique_id = uuid.uuid4().hex
     filename = f"{prefix}/{unique_id}_{secure_filename(filename_hint)}"
+    print(f"[DEBUG] Attempting to upload to S3: {filename}, Content-Type: {content_type}")
 
     try:
         s3.upload_fileobj(
@@ -62,6 +63,7 @@ def _upload_bytes_to_s3(prefix, data_bytes, content_type, filename_hint):
             filename,
             ExtraArgs={'ContentType': content_type}
         )
+        print(f"[DEBUG] Upload successful: {filename}")
 
         return {
             'message': 'Upload successful',
@@ -69,16 +71,23 @@ def _upload_bytes_to_s3(prefix, data_bytes, content_type, filename_hint):
             'presigned_url': get_presigned_url(filename, expires_in=300)
         }, 200
 
-    except NoCredentialsError:
+    except NoCredentialsError as e:
+        print(f"[ERROR] AWS credentials not found: {e}")
         return {'error': 'AWS credentials not found'}, 500
+    except Exception as e:
+        print(f"[ERROR] S3 upload failed: {e}")
+        return {'error': str(e)}, 500
 
 # upload image from frontend, prefix = clothes/avatar
 def upload_to_s3(file, prefix):
+    print(f"[DEBUG] upload_to_s3 called with file: {getattr(file, 'filename', None)}, prefix: {prefix}")
     if file.filename == '':
+        print("[ERROR] No selected file")
         return jsonify({'error': 'No selected file'}), 400
 
     if file and allowed_file(file.filename):
         if file.content_type not in ALLOWED_MIME_TYPES:
+            print(f"[ERROR] Unsupported file type: {file.content_type}")
             return jsonify({'error': 'Unsupported file type'}), 400
 
         return _upload_bytes_to_s3(
@@ -88,6 +97,7 @@ def upload_to_s3(file, prefix):
             filename_hint=file.filename
         )
 
+    print("[ERROR] Invalid file type")
     return jsonify({'error': 'Invalid file type'}), 400
 
 # upload image using url/presigned url 

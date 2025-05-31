@@ -13,18 +13,21 @@ def login_():
 
     conn = get_psql_conn()
     cur = conn.cursor()
-    cur.execute("SELECT password FROM users WHERE name = %s", (username,))
+    cur.execute("SELECT user_id, password FROM users WHERE name = %s", (username,))
     row = cur.fetchone()
 
     if row:
-        if row[0] == password:
+        user_id, db_password = row
+        if db_password == password:
             session['username'] = username
+            session['user_id'] = user_id  # <-- Store user_id in session
             session['login'] = True
             return jsonify({"success": True, "message": "Login successful."}), 200
         else:
             return jsonify({"success": False, "message": "Password is incorrect."}), 401
     else:
         # Insert new user, but do NOT log them in
-        cur.execute("INSERT INTO users (name, password) VALUES (%s, %s)", (username, password))
+        cur.execute("INSERT INTO users (name, password) VALUES (%s, %s) RETURNING id", (username, password))
+        user_id = cur.fetchone()[0]
         conn.commit()
         return jsonify({"success": False, "message": "Account created. Please log in."}), 201
