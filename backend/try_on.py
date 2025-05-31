@@ -363,27 +363,3 @@ def get_result_images():
     cur.close()
     conn.close()
     return jsonify(results), 200
-
-@try_on.post("/login")
-def login():
-    data = request.json
-    name = data.get("username")
-    password = data.get("password")
-
-    conn = get_psql_conn()
-    cur = conn.cursor()
-    cur.execute("SELECT user_id FROM Users WHERE name = %s AND password = %s", (name, password))
-    user = cur.fetchone()
-
-    if not user:
-        # Create new user
-        user_id = str(uuid.uuid4())
-        cur.execute("INSERT INTO Users (user_id, name, password) VALUES (%s, %s, %s)", (user_id, name, password))
-        conn.commit()
-    else:
-        user_id = user[0]
-
-    cur.close()
-    conn.close()
-    session["user_id"] = user_id
-    return jsonify({"message": "Login successful", "user_id": user_id}), 200

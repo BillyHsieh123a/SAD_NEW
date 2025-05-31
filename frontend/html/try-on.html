@@ -81,28 +81,28 @@
             </div>
         </div>
 
-        <!-- Center Panel - Model -->
+        <!-- Center Panel - User Photo -->
         <div class="panel center-panel">
             <h2 class="section-title">
                 <i class="fas fa-user"></i> Your Photo
             </h2>
             
-            <div class="upload-zone" id="model-upload" ondrop="dropHandler(event, 'model')" ondragover="dragOverHandler(event)" ondragleave="dragLeaveHandler(event)">
+            <div class="upload-zone" id="user-upload" ondrop="dropHandler(event, 'user')" ondragover="dragOverHandler(event)" ondragleave="dragLeaveHandler(event)">
                 <i class="fas fa-camera"></i>
                 <p>Upload Your Photo<br>for Virtual Try-On</p>
-                <input type="file" id="model-file" accept="image/*" hidden>
+                <input type="file" id="user-file" accept="image/*" hidden>
             </div>
 
-            <div class="model-container" id="model-container">
+            <div class="user-container" id="user-container">
                 <div class="placeholder-text">
                     <i class="fas fa-user" style="font-size: 4rem; color: #ccc; margin-bottom: 1rem;"></i>
                     <p style="color: #999;">Upload your photo to get started</p>
                 </div>
-                <img id="model-image" class="model-image hidden" alt="Your Photo">
+                <img id="user-image" class="user-image hidden" alt="Your Photo">
             </div>
 
             <div class="controls">
-                <button class="btn btn-secondary" onclick="clearModel()">
+                <button class="btn btn-secondary" onclick="clearUser()">
                     <i class="fas fa-trash"></i> Clear
                 </button>
             </div>

@@ -22,15 +22,15 @@ def init_s3():
     load_dotenv()
     s3_setting['S3_BUCKET'] = os.getenv("S3_BUCKET")
     s3_setting['S3_REGION'] = os.getenv("S3_REGION")
-    # s3_setting['S3_ACCESS_KEY'] = os.getenv("S3_ACCESS_KEY")
-    # s3_setting['S3_SECRET_KEY'] = os.getenv("S3_SECRET_KEY")
+    s3_setting['S3_ACCESS_KEY'] = os.getenv("S3_ACCESS_KEY")
+    s3_setting['S3_SECRET_KEY'] = os.getenv("S3_SECRET_KEY")
 
-    # s3 = boto3.client('s3',
-    #                 region_name=s3_setting['S3_REGION'],
-    #                 aws_access_key_id=s3_setting['S3_ACCESS_KEY'],
-    #                 aws_secret_access_key=s3_setting['S3_SECRET_KEY'])
+    s3 = boto3.client('s3',
+                    region_name=s3_setting['S3_REGION'],
+                    aws_access_key_id=s3_setting['S3_ACCESS_KEY'],
+                    aws_secret_access_key=s3_setting['S3_SECRET_KEY'])
 
-    s3 = boto3.client('s3', region_name=s3_setting['S3_REGION']) 
+    # s3 = boto3.client('s3', region_name=s3_setting['S3_REGION']) 
 
 ALLOWED_EXTENSIONS = {'png', 'jpg', 'jpeg', 'avif', 'webp', 'heic'}
 ALLOWED_MIME_TYPES = {'image/png', 'image/jpeg', 'image/avif', 'image/webp', 'image/heic'}

@@ -597,6 +597,39 @@ body {
     letter-spacing: 1px;
 }
 
+/* User Photo Area */
+.user-container {
+    position: relative;
+    min-height: 350px;      /* Adjust as needed */
+    width: 100%;
+    max-width: 350px;       /* Adjust as needed */
+    background: #f8f9fa;
+    border-radius: 20px;
+    overflow: hidden;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin: 0 auto 1.5rem auto;
+    box-shadow: 0 2px 12px rgba(0,0,0,0.08);
+}
+
+#user-image {
+    max-width: 100%;
+    max-height: 100%;
+    width: auto;
+    height: auto;
+    display: block;
+    object-fit: contain;
+    border-radius: 12px;
+    background: #f8f8f8;
+    box-shadow: 0 2px 12px rgba(0,0,0,0.08);
+}
+
+/* Remove old model styles if not used elsewhere */
+.model-container, .model-image {
+    display: none !important;
+}
+
 @media (max-width: 768px) {
     .main-container {
         grid-template-columns: 1fr;

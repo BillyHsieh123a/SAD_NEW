@@ -1,6 +1,6 @@
 import os
 from flask import Flask, render_template, session, redirect
-from db import init_db_conn, close_psql_conn
+from db import init_db_conn  # <-- remove close_psql_conn
 from flask_cors import CORS
 
 from login import login_bp
@@ -29,7 +29,7 @@ def init_app():
     init_get_ai_comments()
 
 def finish_app():
-    close_psql_conn()
+    pass  # No need to close a global connection
 
 if __name__ == '__main__':
     try:

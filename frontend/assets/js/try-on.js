@@ -1,8 +1,12 @@
+// =======================
+// Global State & Constants
+// =======================
+
 // Global state
 let selectedClothes = {
     tops: [],
     bottoms: [],
-    model: null
+    user: null // changed from model
 };
 
 let currentCategory = 'tops';
@@ -11,10 +15,30 @@ let currentTryOnResult = null;
 let uploadQueue = [];
 let isUploading = false;
 
-let tryOnResults = []; // Store all generated results
+let tryOnResults = [];
 let selectedResultIndex = -1;
 
-// Initialize drag and drop functionality
+// =======================
+// Initialization
+// =======================
+
+document.addEventListener('DOMContentLoaded', () => {
+    initializeUploadZones();
+    updateAIComment();
+    loadUserPhoto(); // <-- Add this line
+    setTimeout(() => {
+        // Pre-load sample items if needed
+    }, 1000);
+});
+
+// Prevent default drag behaviors on document
+document.addEventListener('dragover', (e) => e.preventDefault());
+document.addEventListener('drop', (e) => e.preventDefault());
+
+// =======================
+// Upload & File Handling
+// =======================
+
 function initializeUploadZones() {
     const uploadZones = document.querySelectorAll('.upload-zone');
     uploadZones.forEach(zone => {
@@ -29,7 +53,7 @@ function initializeUploadZones() {
     // File input change handlers
     document.getElementById('tops-file').addEventListener('change', (e) => handleFileSelect(e, 'tops'));
     document.getElementById('bottoms-file').addEventListener('change', (e) => handleFileSelect(e, 'bottoms'));
-    document.getElementById('model-file').addEventListener('change', (e) => handleFileSelect(e, 'model'));
+    document.getElementById('user-file').addEventListener('change', (e) => handleFileSelect(e, 'user')); // changed from model-file
     document.getElementById('bulk-file').addEventListener('change', (e) => handleBulkUpload(e));
 }
 
@@ -65,7 +89,7 @@ function dropHandler(e, category) {
 // File handling
 function handleFileSelect(e, category) {
     const files = e.target.files;
-    if (category === 'model') {
+    if (category === 'user') {
         handleFiles([files[0]], category);
     } else {
         handleFiles(files, category);
@@ -132,20 +156,22 @@ function updateUploadProgress(current, total) {
 }
 
 function handleFiles(files, category) {
+    console.debug('handleFiles called', { files, category });
     Array.from(files).forEach(file => {
         if (file.type.startsWith('image/')) {
-            if (category === 'model') {
-                uploadModelPhotoToBackend(file).then(res => {
+            if (category === 'user') {
+                uploadUserPhotoToBackend(file).then(res => {
+                    console.debug('uploadUserPhotoToBackend response', res);
                     if (res && (res.presigned_url || res.filepath)) {
-                        setModelImage(res.presigned_url || `/api/s3/proxy/${res.filepath}`);
-                        selectedClothes.model_id = res.photo_id;
+                        setUserImage(res.presigned_url || `/api/s3/proxy/${res.filepath}`);
+                        selectedClothes.user_id = res.photo_id;
                     } else {
-                        console.error('Failed to upload model photo:', res); // Debug message
-                        alert('Failed to upload model photo');
+                        console.error('Failed to upload user photo:', res);
+                        alert('Failed to upload user photo');
                     }
                 }).catch(err => {
-                    console.error('Error uploading model photo:', err); // Debug message
-                    alert('Failed to upload model photo');
+                    console.error('Error uploading user photo:', err);
+                    alert('Failed to upload user photo');
                 });
             } else if (category === 'bulk') {
                 // No longer needed, handled in dropHandler
@@ -160,60 +186,67 @@ function handleFiles(files, category) {
     });
 }
 
-// Model image handling
-function setModelImage(src) {
-    const modelImage = document.getElementById('model-image');
+async function uploadUserPhotoToBackend(file) {
+    console.debug('uploadUserPhotoToBackend called', { file });
+    const formData = new FormData();
+    formData.append('user-photo', file);
+
+    const response = await fetch('/api/user-photo/upload', {
+        method: 'POST',
+        body: formData,
+        credentials: 'include'
+    });
+    return response.json();
+}
+
+function setUserImage(src) {
+    console.debug('setUserImage called', { src });
+    const userImage = document.getElementById('user-image');
     const placeholder = document.querySelector('.placeholder-text');
     
-    modelImage.src = src;
-    modelImage.classList.remove('hidden');
+    userImage.src = src;
+    userImage.classList.remove('hidden');
     if (placeholder) placeholder.style.display = 'none';
     
-    selectedClothes.model = src;
+    selectedClothes.user = src;
     updateAIComment();
 }
 
-function clearModel() {
-    const modelImage = document.getElementById('model-image');
-    const placeholder = document.querySelector('.placeholder-text');
-    
-    modelImage.classList.add('hidden');
-    // if (placeholder) placeholder.style.display = 'block';
-    
-    selectedClothes.model = null;
-    updateAIComment();
-}
-
-// Category management
-function switchCategory(category) {
-    // Update active tab
-    document.querySelectorAll('.tab-btn').forEach(btn => {
-        btn.classList.remove('active');
-    });
-    document.querySelector(`[data-category="${category}"]`).classList.add('active');
-
-    // Show/hide category sections
-    document.querySelectorAll('.category-section').forEach(section => {
-        section.classList.add('hidden');
-    });
-    document.getElementById(`${category}-section`).classList.remove('hidden');
-
-    currentCategory = category;
-}
-
-function updateCategoryCounts() {
-    Object.keys(selectedClothes).forEach(category => {
-        if (category !== 'model') {
-            const count = selectedClothes[category].length;
-            const countElement = document.getElementById(`${category}-count`);
-            if (countElement) {
-                countElement.textContent = count;
-            }
-        }
+function clearUser() {
+    console.debug('clearUser called');
+    // Delete user photo from backend
+    fetch('/api/user-photo/', {
+        method: 'DELETE',
+        credentials: 'include'
+    })
+    .then(res => res.json())
+    .then(data => {
+        console.debug('User photo deleted:', data);
+        const userImage = document.getElementById('user-image');
+        const placeholder = document.querySelector('.placeholder-text');
+        userImage.classList.add('hidden');
+        selectedClothes.user = null;
+        if (placeholder) placeholder.style.display = '';
+        updateAIComment();
+    })
+    .catch(err => {
+        console.error('Failed to delete user photo:', err);
+        // Still clear UI even if backend fails
+        const userImage = document.getElementById('user-image');
+        const placeholder = document.querySelector('.placeholder-text');
+        userImage.classList.add('hidden');
+        selectedClothes.user = null;
+        if (placeholder) placeholder.style.display = '';
+        updateAIComment();
     });
 }
-// Clothing item handling
+
+// =======================
+// Clothing Item Handling
+// =======================
+
 function addClothingItem(src, category, name) {
+    console.debug('addClothingItem called', { src, category, name });
     const item = {
         id: Date.now() + Math.random(),
         src: src,
@@ -298,9 +331,44 @@ function showCategoryMenu(itemId, currentCategory) {
     }
 }
 
+// =======================
+// Category Management
+// =======================
+
+function switchCategory(category) {
+    // Update active tab
+    document.querySelectorAll('.tab-btn').forEach(btn => {
+        btn.classList.remove('active');
+    });
+    document.querySelector(`[data-category="${category}"]`).classList.add('active');
+
+    // Show/hide category sections
+    document.querySelectorAll('.category-section').forEach(section => {
+        section.classList.add('hidden');
+    });
+    document.getElementById(`${category}-section`).classList.remove('hidden');
+
+    currentCategory = category;
+}
+
+function updateCategoryCounts() {
+    Object.keys(selectedClothes).forEach(category => {
+        if (category !== 'user') { // changed from model
+            const count = selectedClothes[category].length;
+            const countElement = document.getElementById(`${category}-count`);
+            if (countElement) {
+                countElement.textContent = count;
+            }
+        }
+    });
+}
+
+// =======================
 // AI Try-On Generation
+// =======================
+
 function generateTryOn() {
-    if (!selectedClothes.model) {
+    if (!selectedClothes.user) {
         alert('Please upload your photo first!');
         return;
     }
@@ -320,10 +388,10 @@ function generateTryOn() {
         canvas.width = 400;
         canvas.height = 600;
 
-        const modelImg = new Image();
-        modelImg.onload = () => {
+        const userImg = new Image();
+        userImg.onload = () => {
             // Draw model
-            ctx.drawImage(modelImg, 0, 0, canvas.width, canvas.height);
+            ctx.drawImage(userImg, 0, 0, canvas.width, canvas.height);
             
             // Add clothing overlay effect
             ctx.globalAlpha = 0.7;
@@ -336,7 +404,7 @@ function generateTryOn() {
             showLoading(false);
             generateAIComment();
         };
-        modelImg.src = selectedClothes.model;
+        userImg.src = selectedClothes.user;
     }, 2000);
 }
 
@@ -426,7 +494,10 @@ function showGalleryResult(idx) {
     currentTryOnResult = src;
 }
 
+// =======================
 // AI Comment Generation
+// =======================
+
 function updateAIComment() {
     const comments = [
         "Looking great! Ready to try on some clothes?",
@@ -456,27 +527,61 @@ function generateAIComment() {
     document.getElementById('ai-comment-text').textContent = comment;
 }
 
-// Utility functions
+// =======================
+// Utility Functions
+// =======================
+
 function resetAll() {
-    selectedClothes = { tops: [], bottoms: [], model: null };
-    document.querySelectorAll('.clothes-grid').forEach(grid => grid.innerHTML = '');
-    clearModel();
+    // Delete user photo from backend
+    fetch('/api/user-photo/', {
+        method: 'DELETE',
+        credentials: 'include'
+    })
+    .then(res => res.json())
+    .then(data => {
+        console.debug('User photo deleted:', data);
+        // Now clear UI state as before
+        selectedClothes = { tops: [], bottoms: [], user: null };
+        document.querySelectorAll('.clothes-grid').forEach(grid => grid.innerHTML = '');
+        clearUser();
 
-    const resultImage = document.getElementById('result-image');
-    const placeholder = document.getElementById('result-placeholder');
-    resultImage.classList.add('hidden');
-    resultImage.src = ''; // <-- This line ensures the image is discarded
-    placeholder.classList.remove('hidden');
+        const resultImage = document.getElementById('result-image');
+        const placeholder = document.getElementById('result-placeholder');
+        resultImage.classList.add('hidden');
+        resultImage.src = '';
+        placeholder.classList.remove('hidden');
 
-    currentTryOnResult = null;
-    tryOnResults = [];
-    selectedResultIndex = -1;
+        currentTryOnResult = null;
+        tryOnResults = [];
+        selectedResultIndex = -1;
 
-    // Clear the try-on gallery
-    const gallery = document.getElementById('tryon-gallery');
-    if (gallery) gallery.innerHTML = '';
+        const gallery = document.getElementById('tryon-gallery');
+        if (gallery) gallery.innerHTML = '';
 
-    updateAIComment();
+        updateAIComment();
+    })
+    .catch(err => {
+        console.error('Failed to delete user photo:', err);
+        // Still reset UI even if backend fails
+        selectedClothes = { tops: [], bottoms: [], user: null };
+        document.querySelectorAll('.clothes-grid').forEach(grid => grid.innerHTML = '');
+        clearUser();
+
+        const resultImage = document.getElementById('result-image');
+        const placeholder = document.getElementById('result-placeholder');
+        resultImage.classList.add('hidden');
+        resultImage.src = '';
+        placeholder.classList.remove('hidden');
+
+        currentTryOnResult = null;
+        tryOnResults = [];
+        selectedResultIndex = -1;
+
+        const gallery = document.getElementById('tryon-gallery');
+        if (gallery) gallery.innerHTML = '';
+
+        updateAIComment();
+    });
 }
 
 function getBrandedResultImage(callback) {
@@ -598,34 +703,7 @@ function shareResult() {
     });
 }
 
-// Model photo upload to backend
-async function uploadModelPhotoToBackend(file) {
-    const formData = new FormData();
-    formData.append('model-photo', file);
-
-    const response = await fetch('/api/try-on/image/model', {
-        method: 'POST',
-        body: formData,
-        credentials: 'include'
-    });
-    return response.json();
-}
-
-// Initialize on page load
-document.addEventListener('DOMContentLoaded', () => {
-    initializeUploadZones();
-    updateAIComment();
-    
-    // Add some sample clothing items for demo
-    setTimeout(() => {
-        // You can pre-load some sample items here if needed
-    }, 1000);
-});
-
-// Prevent default drag behaviors on document
-document.addEventListener('dragover', (e) => e.preventDefault());
-document.addEventListener('drop', (e) => e.preventDefault());
-
+// Delete selected items
 function deleteSelected() {
     // For each category, remove items whose id is in selectedItems
     ['tops', 'bottoms'].forEach(category => {
@@ -657,4 +735,17 @@ function deleteTryOnResult(idx) {
         currentTryOnResult = null;
     }
     renderTryOnGallery();
+}
+
+function loadUserPhoto() {
+    fetch('/api/user-photo/', { credentials: 'include' })
+        .then(res => res.json())
+        .then(photos => {
+            if (Array.isArray(photos) && photos.length > 0 && photos[0].url) {
+                setUserImage(photos[0].url);
+            }
+        })
+        .catch(err => {
+            console.error('Failed to load user photo:', err);
+        });
 }
