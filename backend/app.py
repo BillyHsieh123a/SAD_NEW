@@ -10,6 +10,7 @@ from s3 import init_s3
 from fitroom_api_virtual_try_on import init_fitroom_api_key
 from ai_comments import init_get_ai_comments
 from try_on_user_photo import user_photo_bp
+from try_on_clothes import user_clothes_bp
 serverURL = "http://127.0.0.1:5000"
 
 # Global Flask app (SUBJECT TO CHANGE)
@@ -19,6 +20,7 @@ app.register_blueprint(login_bp)
 app.register_blueprint(try_on)
 app.register_blueprint(page_serve)
 app.register_blueprint(user_photo_bp)
+app.register_blueprint(user_clothes_bp)
 
 # Initialize the app and connect to the database.
 def init_app():

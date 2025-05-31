@@ -25,7 +25,8 @@ let selectedResultIndex = -1;
 document.addEventListener('DOMContentLoaded', () => {
     initializeUploadZones();
     updateAIComment();
-    loadUserPhoto(); // <-- Add this line
+    loadUserPhoto();
+    loadUserClothes(); // <-- Add this line
     setTimeout(() => {
         // Pre-load sample items if needed
     }, 1000);
@@ -107,34 +108,37 @@ function handleBulkUpload(e) {
 }
 
 function processBulkFiles(files) {
-    uploadQueue = files.slice();
-    isUploading = true;
-    let processed = 0;
-    
-    const processNext = () => {
-        if (uploadQueue.length === 0) {
-            showUploadProgress(false);
-            isUploading = false;
-            return;
-        }
+    if (files.length === 0) return;
+    showUploadProgress(true);
 
-        const file = uploadQueue.shift();
-        const reader = new FileReader();
-        
-        reader.onload = (e) => {
-            // Add to a temporary category
-            addClothingItem(e.target.result, 'tops', file.name); // or prompt user for category
-            
+    // Use the currently selected category (tops/bottoms)
+    const type = currentCategory === 'tops' ? 'Tops' : 'Bottoms';
+
+    const formData = new FormData();
+    files.forEach(file => formData.append('clothes-photos', file));
+    formData.append('type', type);
+
+    fetch('/api/user-clothes/bulk-upload', {
+        method: 'POST',
+        body: formData,
+        credentials: 'include'
+    })
+    .then(res => res.json())
+    .then(results => {
+        let processed = 0;
+        results.forEach(res => {
+            if (res && res.presigned_url && res.clothes_id) {
+                addClothingItem(res.presigned_url, currentCategory, `Clothes #${res.clothes_id}`, res.clothes_id);
+            }
             processed++;
             updateUploadProgress(processed, files.length);
-            
-            setTimeout(processNext, 100); // Small delay to prevent blocking
-        };
-        
-        reader.readAsDataURL(file);
-    };
-
-    processNext();
+        });
+        showUploadProgress(false);
+    })
+    .catch(err => {
+        console.error('Bulk upload failed:', err);
+        showUploadProgress(false);
+    });
 }
 
 function showUploadProgress(show) {
@@ -173,15 +177,25 @@ function handleFiles(files, category) {
                     console.error('Error uploading user photo:', err);
                     alert('Failed to upload user photo');
                 });
+            } else if (category === 'tops' || category === 'bottoms') {
+                uploadUserClothesToBackend(file, category).then(res => {
+                    console.debug('uploadUserClothesToBackend response', res);
+                    if (res && res.presigned_url && res.clothes_id) {
+                        addClothingItem(res.presigned_url, category, `Clothes #${res.clothes_id}`, res.clothes_id);
+                    } else {
+                        console.error('Failed to upload clothing item:', res);
+                        alert('Failed to upload clothing item');
+                    }
+                }).catch(err => {
+                    console.error('Error uploading clothing item:', err);
+                    alert('Failed to upload clothing item');
+                });
             } else if (category === 'bulk') {
                 // No longer needed, handled in dropHandler
             } else {
                 const reader = new FileReader();
                 reader.onload = (e) => {
                     addClothingItem(e.target.result, category, file.name);
-                };
-                reader.readAsDataURL(file);
-            }
                 };
                 reader.readAsDataURL(file);
             }
@@ -195,6 +209,21 @@ async function uploadUserPhotoToBackend(file) {
     formData.append('user-photo', file);
 
     const response = await fetch('/api/user-photo/upload', {
+        method: 'POST',
+        body: formData,
+        credentials: 'include'
+    });
+    return response.json();
+}
+
+async function uploadUserClothesToBackend(file, category) {
+    console.debug('uploadUserClothesToBackend called', { file, category });
+    const formData = new FormData();
+    formData.append('clothes-photo', file);
+    // 'T' for tops, 'B' for bottoms
+    formData.append('type', category === 'tops' ? 'Tops' : 'Bottoms');
+
+    const response = await fetch('/api/user-clothes/upload', {
         method: 'POST',
         body: formData,
         credentials: 'include'
@@ -248,15 +277,13 @@ function clearUser() {
 // Clothing Item Handling
 // =======================
 
-function addClothingItem(src, category, name) {
-    console.debug('addClothingItem called', { src, category, name });
+function addClothingItem(src, category, name, idFromBackend) {
     const item = {
-        id: Date.now() + Math.random(),
+        id: idFromBackend || (Date.now() + Math.random()), // Use backend id if available
         src: src,
         name: name,
         category: category
     };
-
     selectedClothes[category].push(item);
     renderClothingGrid(category);
     updateCategoryCounts();
@@ -706,15 +733,33 @@ function shareResult() {
     });
 }
 
-// Delete selected items
-function deleteSelected() {
-    // For each category, remove items whose id is in selectedItems
+// Delete with backend
+async function deleteClothingItemFromBackend(clothes_id) {
+    return fetch(`/api/user-clothes/${clothes_id}`, {
+        method: 'DELETE',
+        credentials: 'include'
+    }).then(res => res.json());
+}
+
+async function deleteSelected() {
+    // Gather IDs to delete
+    const idsToDelete = [];
+    ['tops', 'bottoms'].forEach(category => {
+        selectedClothes[category].forEach(item => {
+            if (selectedItems.has(item.id)) {
+                idsToDelete.push(item.id);
+            }
+        });
+    });
+
+    // Delete from backend
+    await Promise.all(idsToDelete.map(id => deleteClothingItemFromBackend(id)));
+
+    // Remove from frontend state
     ['tops', 'bottoms'].forEach(category => {
         selectedClothes[category] = selectedClothes[category].filter(item => !selectedItems.has(item.id));
     });
-    // Clear selectedItems set
     selectedItems.clear();
-    // Re-render grids
     renderClothingGrid('tops');
     renderClothingGrid('bottoms');
     updateAIComment();
@@ -750,5 +795,33 @@ function loadUserPhoto() {
         })
         .catch(err => {
             console.error('Failed to load user photo:', err);
+        });
+}
+
+function loadUserClothes() {
+    fetch('/api/user-clothes/', { credentials: 'include' })
+        .then(res => res.json())
+        .then(clothes => {
+            selectedClothes.tops = [];
+            selectedClothes.bottoms = [];
+            if (Array.isArray(clothes)) {
+                clothes.forEach(item => {
+                    const category = item.type === 'Tops' ? 'tops' : (item.type === 'Bottoms' ? 'bottoms' : null);
+                    if (category) {
+                        selectedClothes[category].push({
+                            id: item.clothes_id,
+                            src: item.url,
+                            name: `Clothes #${item.clothes_id}`,
+                            category: category
+                        });
+                    }
+                });
+            }
+            renderClothingGrid('tops');
+            renderClothingGrid('bottoms');
+            updateCategoryCounts();
+        })
+        .catch(err => {
+            console.error('Failed to load user clothes:', err);
         });
 }
