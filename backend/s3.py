@@ -32,8 +32,8 @@ def init_s3():
 
     # s3 = boto3.client('s3', region_name=s3_setting['S3_REGION']) 
 
-ALLOWED_EXTENSIONS = {'png', 'jpg', 'jpeg', 'avif', 'webp', 'heic'}
-ALLOWED_MIME_TYPES = {'image/png', 'image/jpeg', 'image/avif', 'image/webp', 'image/heic'}
+ALLOWED_EXTENSIONS = {'png', 'jpg', 'jpeg'}
+ALLOWED_MIME_TYPES = {'image/png', 'image/jpeg'}
 def allowed_file(filename):
     return '.' in filename and filename.rsplit('.', 1)[1].lower() in ALLOWED_EXTENSIONS
 
