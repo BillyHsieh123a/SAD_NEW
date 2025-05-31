@@ -26,9 +26,9 @@ def init_db_conn():
             password = DB_USER_PASSWORD,
             port = DB_PORT
         )
-        
+        print("Connected to database!")  # <-- add this
     except Exception as e:
-        # print(f"Error connecting to database: {e}")
+        print(f"Error connecting to database: {e}")
         psql_conn = None
 
     # print(f"conneted to database: {psql_conn}")

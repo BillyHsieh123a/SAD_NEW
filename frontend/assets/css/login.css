@@ -53,7 +53,7 @@ body {
     background: linear-gradient(45deg, #764ba2, #667eea);
 }
 .login-container .error {
-    color: #e74c3c;
+    color: #764ba2;
     margin-bottom: 1rem;
     font-size: 0.95rem;
 }

@@ -10,7 +10,7 @@ def index():
     if session.get("login"):
         return redirect("/try-on")
     else:
-        return redirect("/login")  # redirect to login page if not logged in
+        return redirect("/login")
 
 @page_serve.route('/login', methods=['GET', 'POST'])
 def serve_login_page():
@@ -31,7 +31,6 @@ def serve_login_page():
 
 @page_serve.get('/try-on')
 def serve_tryon_page():
-    # Only allow access if logged in
     if not session.get("login"):
         return redirect("/login")
     return render_template("try-on.html")
