@@ -5,7 +5,7 @@
 -- Dumped from database version 17.4
 -- Dumped by pg_dump version 17.4
 
--- Started on 2025-05-31 19:18:19 CST
+-- Started on 2025-05-31 19:24:32 CST
 
 SET statement_timeout = 0;
 SET lock_timeout = 0;
@@ -367,7 +367,7 @@ ALTER TABLE ONLY public."TryonResults"
 REVOKE USAGE ON SCHEMA public FROM PUBLIC;
 
 
--- Completed on 2025-05-31 19:18:19 CST
+-- Completed on 2025-05-31 19:24:32 CST
 
 --
 -- PostgreSQL database dump complete
