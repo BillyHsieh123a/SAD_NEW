@@ -27,7 +27,7 @@ def login_():
             return jsonify({"success": False, "message": "Password is incorrect."}), 401
     else:
         # Insert new user, but do NOT log them in
-        cur.execute("INSERT INTO users (name, password) VALUES (%s, %s) RETURNING id", (username, password))
+        cur.execute("INSERT INTO users (name, password) VALUES (%s, %s) RETURNING user_id", (username, password))
         user_id = cur.fetchone()[0]
         conn.commit()
         return jsonify({"success": False, "message": "Account created. Please log in."}), 201
