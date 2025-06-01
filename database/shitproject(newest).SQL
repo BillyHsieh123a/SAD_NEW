@@ -68,3 +68,7 @@ CREATE TABLE IF NOT EXISTS public.user_photo (
     CONSTRAINT user_photo_pkey PRIMARY KEY (user_id, photo_id)
 );
 ALTER TABLE IF EXISTS public.user_photo OWNER TO postgres;
+
+INSERT INTO users ("user_id", "password", "name")
+VALUES (1234, 1234, 1234);
+SELECT * FROM users
