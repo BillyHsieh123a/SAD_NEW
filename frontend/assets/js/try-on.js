@@ -501,6 +501,7 @@ function renderTryOnGallery() {
         wrapper.style.display = 'inline-block';
 
         const img = document.createElement('img');
+        
         img.src = item.image_url;
         img.alt = `Try-On Result ${idx + 1}`;
         if (idx === selectedResultIndex) img.classList.add('selected');
@@ -637,11 +638,8 @@ function getBrandedResultImage(callback) {
         return;
     }
 
-    // Extract the S3 key/filename from the image URL if needed
-    // Example: if currentTryOnResult is a full URL, extract the key after the bucket domain
     let s3Key = currentTryOnResult;
     if (currentTryOnResult.startsWith('http')) {
-        // Example for AWS S3 URLs: https://bucket.s3.region.amazonaws.com/key
         const match = currentTryOnResult.match(/amazonaws\.com\/(.+?)(\?|$)/);
         if (match) s3Key = match[1];
     }
@@ -656,36 +654,104 @@ function getBrandedResultImage(callback) {
             const img = new Image();
             img.crossOrigin = "anonymous";
             img.onload = function() {
-                // ... your canvas drawing code here ...
                 const aiComment = document.getElementById('ai-comment-text').textContent || '';
                 const appName = "Dressique Virtual Try-On";
                 const themeColor = "#667eea";
-                const padding = 40;
-                const topBar = 60;
-                const bottomBar = 100;
-                const width = img.width + padding * 2;
-                const height = img.height + topBar + bottomBar;
+
+                // --- SCALE for high-res ---
+                const scale = 2; // 2x resolution
+
+                // --- Sizing (all values multiplied by scale) ---
+                const maxImgWidth = 200 * scale;
+                const imgScale = Math.min(1, maxImgWidth / img.width);
+                const drawImgWidth = img.width * imgScale;
+                const drawImgHeight = img.height * imgScale;
+
+                const margin = 12 * scale;
+                const imgMargin = 8 * scale;
+                const topBar = 60 * scale;
+                const commentFrameHeight = 90 * scale;
+                const commentFramePadding = 12 * scale;
+                const bottomBar = 40 * scale;
+
+                const canvasWidth = drawImgWidth + margin * 2 + imgMargin * 2;
+                const canvasHeight = topBar + imgMargin + drawImgHeight + imgMargin + commentFrameHeight + bottomBar;
+
                 const canvas = document.createElement('canvas');
-                canvas.width = width;
-                canvas.height = height;
+                canvas.width = canvasWidth;
+                canvas.height = canvasHeight;
                 const ctx = canvas.getContext('2d');
+
+                // --- Theme background ---
                 ctx.fillStyle = themeColor;
-                ctx.fillRect(0, 0, width, height);
-                ctx.fillStyle = "#fff";
-                ctx.fillRect(padding, topBar, img.width, img.height);
-                ctx.font = "bold 28px Arial";
-                ctx.fillStyle = "#fff";
-                ctx.textAlign = "left";
-                ctx.textBaseline = "top";
-                ctx.fillText(appName, padding, 16);
-                ctx.drawImage(img, padding, topBar, img.width, img.height);
-                ctx.font = "18px Arial";
+                ctx.fillRect(0, 0, canvasWidth, canvasHeight);
+
+                // --- Brand name (scaled font) ---
+                ctx.font = `bold ${16 * scale}px Times New Roman, serif`;
                 ctx.fillStyle = "#fff";
                 ctx.textAlign = "center";
                 ctx.textBaseline = "middle";
-                const commentY = height - bottomBar / 2;
-                const maxWidth = width - 40;
-                wrapText(ctx, aiComment, width / 2, commentY, maxWidth, 24);
+                ctx.fillText(appName, canvasWidth / 2, topBar / 2);
+
+                // --- White rounded margin for image ---
+                const imgFrameX = margin;
+                const imgFrameY = topBar;
+                const imgFrameW = drawImgWidth + imgMargin * 2;
+                const imgFrameH = drawImgHeight + imgMargin * 2;
+                const imgRadius = 20 * scale;
+
+                ctx.save();
+                roundRect(ctx, imgFrameX, imgFrameY, imgFrameW, imgFrameH, imgRadius);
+                ctx.fillStyle = "#fff";
+                ctx.fill();
+                ctx.restore();
+
+                // --- Draw image with rounded corners (same as border) ---
+                ctx.save();
+                roundRect(ctx, imgFrameX, imgFrameY, imgFrameW, imgFrameH, imgRadius);
+                ctx.clip();
+                ctx.drawImage(
+                    img,
+                    imgFrameX + imgMargin,
+                    imgFrameY + imgMargin,
+                    drawImgWidth,
+                    drawImgHeight
+                );
+                ctx.restore();
+
+                // --- AI comment in white rounded frame (taller) ---
+                ctx.font = `${10 * scale}px 'Segoe UI', 'Roboto', 'Helvetica Neue', Times New Roman, serif`;
+                const commentFrameW = canvasWidth - margin * 2;
+                const commentFrameX = margin;
+                const commentFrameY = topBar + imgMargin + drawImgHeight + imgMargin + 16 * scale;
+                const commentRadius = 18 * scale;
+                const lineHeight = 12 * scale;
+
+                // Draw the frame
+                ctx.save();
+                roundRect(ctx, commentFrameX, commentFrameY, commentFrameW, commentFrameHeight, commentRadius);
+                ctx.fillStyle = "#fff";
+                ctx.fill();
+                ctx.restore();
+
+                // Draw the text (fixed size, clip overflow)
+                ctx.font = `${10 * scale}px 'Segoe UI', 'Roboto', 'Helvetica Neue', Times New Roman, serif`;
+                ctx.fillStyle = themeColor;
+                ctx.textAlign = "center";
+                ctx.textBaseline = "middle";
+                const maxTextWidth = commentFrameW - commentFramePadding * 2;
+                const lines = getWrappedLines(ctx, aiComment, maxTextWidth);
+                const maxLines = Math.floor((commentFrameHeight - commentFramePadding * 2) / lineHeight);
+                const visibleLines = lines.slice(0, maxLines);
+                const textStartY = commentFrameY + commentFramePadding + lineHeight / 2;
+                visibleLines.forEach((l, i) => {
+                    ctx.fillText(
+                        l.trim(),
+                        commentFrameX + commentFrameW / 2,
+                        textStartY + i * lineHeight
+                    );
+                });
+
                 callback(canvas.toDataURL("image/png"));
             };
             img.src = data.url;
@@ -695,8 +761,23 @@ function getBrandedResultImage(callback) {
             console.error(err);
         });
 
+    // Helper for rounded rectangles
+    function roundRect(ctx, x, y, w, h, r) {
+        ctx.beginPath();
+        ctx.moveTo(x + r, y);
+        ctx.lineTo(x + w - r, y);
+        ctx.quadraticCurveTo(x + w, y, x + w, y + r);
+        ctx.lineTo(x + w, y + h - r);
+        ctx.quadraticCurveTo(x + w, y + h, x + w - r, y + h);
+        ctx.lineTo(x + r, y + h);
+        ctx.quadraticCurveTo(x, y + h, x, y + h - r);
+        ctx.lineTo(x, y + r);
+        ctx.quadraticCurveTo(x, y, x + r, y);
+        ctx.closePath();
+    }
+
     // Helper for wrapping text
-    function wrapText(ctx, text, x, y, maxWidth, lineHeight) {
+    function getWrappedLines(ctx, text, maxWidth) {
         const words = text.split(' ');
         let line = '';
         let lines = [];
@@ -712,9 +793,7 @@ function getBrandedResultImage(callback) {
             }
         }
         lines.push(line);
-        lines.forEach((l, i) => {
-            ctx.fillText(l.trim(), x, y + i * lineHeight - ((lines.length - 1) * lineHeight) / 2);
-        });
+        return lines;
     }
 }
 
