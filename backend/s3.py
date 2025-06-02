@@ -1,4 +1,4 @@
-from flask import request, jsonify
+from flask import request, jsonify, Blueprint
 import boto3
 from werkzeug.utils import secure_filename
 from botocore.exceptions import NoCredentialsError
@@ -11,8 +11,6 @@ import requests
 s3_setting = {
     "S3_BUCKET": None,
     "S3_REGION": None,
-    # "S3_ACCESS_KEY": None,
-    # "S3_SECRET_KEY": None,
 }
 
 s3 = None
@@ -138,7 +136,7 @@ def delete_image_from_s3(filename: str):
     except Exception as e:
         return {'error': f'Failed to delete: {str(e)}'}, 500
 
-s3_bp = Blueprint('s3_bp', _name_, url_prefix="/api/s3")
+s3_bp = Blueprint('s3_bp', __name__, url_prefix="/api/s3")
 
 @s3_bp.route('/presigned-url', methods=['GET'])
 def api_get_presigned_url():
