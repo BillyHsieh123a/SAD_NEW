@@ -862,3 +862,25 @@ function loadUserClothes() {
             console.error('Failed to load user clothes:', err);
         });
 }
+
+function loadTryOnResults() {
+    fetch('/api/try-on/', { credentials: 'include' })
+        .then(res => res.json())
+        .then(results => {
+            if (Array.isArray(results) && results.length > 0) {
+                tryOnResults = results.map(item => ({
+                    try_on_id: item.try_on_id,
+                    image_url: item.image_url || item.url,
+                    comments: item.comments || ""
+                }));
+                selectedResultIndex = tryOnResults.length - 1;
+                renderTryOnGallery();
+                if (selectedResultIndex >= 0) {
+                    showGalleryResult(selectedResultIndex);
+                }
+            }
+        })
+        .catch(err => {
+            console.error('Failed to load try-on results:', err);
+        });
+}
