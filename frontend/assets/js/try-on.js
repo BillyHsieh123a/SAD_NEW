@@ -636,45 +636,64 @@ function getBrandedResultImage(callback) {
         alert('No result to process. Please generate a try-on first!');
         return;
     }
-    const aiComment = document.getElementById('ai-comment-text').textContent || '';
-    const appName = "Dressique Virtual Try-On";
 
-    // Create a new canvas
-    const img = new Image();
-    img.crossOrigin = "anonymous";
-    img.onload = function() {
-        const width = img.width;
-        const height = img.height;
-        const extraHeight = 100; // Space for branding and comment
-        const canvas = document.createElement('canvas');
-        canvas.width = width;
-        canvas.height = height + extraHeight;
-        const ctx = canvas.getContext('2d');
+    // Extract the S3 key/filename from the image URL if needed
+    // Example: if currentTryOnResult is a full URL, extract the key after the bucket domain
+    let s3Key = currentTryOnResult;
+    if (currentTryOnResult.startsWith('http')) {
+        // Example for AWS S3 URLs: https://bucket.s3.region.amazonaws.com/key
+        const match = currentTryOnResult.match(/amazonaws\.com\/(.+?)(\?|$)/);
+        if (match) s3Key = match[1];
+    }
 
-        // Draw the try-on image
-        ctx.drawImage(img, 0, 0, width, height);
-
-        // Draw a white rectangle for text background
-        ctx.fillStyle = "#fff";
-        ctx.fillRect(0, height, width, extraHeight);
-
-        // Draw app name
-        ctx.font = "bold 24px Arial";
-        ctx.fillStyle = "#667eea";
-        ctx.textAlign = "center";
-        ctx.fillText(appName, width / 2, height + 35);
-
-        // Draw AI comment (wrap if too long)
-        ctx.font = "16px Arial";
-        ctx.fillStyle = "#333";
-        const commentY = height + 65;
-        const maxWidth = width - 40;
-        wrapText(ctx, aiComment, width / 2, commentY, maxWidth, 22);
-
-        // Return the new image as DataURL
-        callback(canvas.toDataURL("image/png"));
-    };
-    img.src = currentTryOnResult;
+    fetch(`/api/s3/presigned-url?filename=${encodeURIComponent(s3Key)}`)
+        .then(res => res.json())
+        .then(data => {
+            if (!data.url) {
+                alert('Failed to get image URL.');
+                return;
+            }
+            const img = new Image();
+            img.crossOrigin = "anonymous";
+            img.onload = function() {
+                // ... your canvas drawing code here ...
+                const aiComment = document.getElementById('ai-comment-text').textContent || '';
+                const appName = "Dressique Virtual Try-On";
+                const themeColor = "#667eea";
+                const padding = 40;
+                const topBar = 60;
+                const bottomBar = 100;
+                const width = img.width + padding * 2;
+                const height = img.height + topBar + bottomBar;
+                const canvas = document.createElement('canvas');
+                canvas.width = width;
+                canvas.height = height;
+                const ctx = canvas.getContext('2d');
+                ctx.fillStyle = themeColor;
+                ctx.fillRect(0, 0, width, height);
+                ctx.fillStyle = "#fff";
+                ctx.fillRect(padding, topBar, img.width, img.height);
+                ctx.font = "bold 28px Arial";
+                ctx.fillStyle = "#fff";
+                ctx.textAlign = "left";
+                ctx.textBaseline = "top";
+                ctx.fillText(appName, padding, 16);
+                ctx.drawImage(img, padding, topBar, img.width, img.height);
+                ctx.font = "18px Arial";
+                ctx.fillStyle = "#fff";
+                ctx.textAlign = "center";
+                ctx.textBaseline = "middle";
+                const commentY = height - bottomBar / 2;
+                const maxWidth = width - 40;
+                wrapText(ctx, aiComment, width / 2, commentY, maxWidth, 24);
+                callback(canvas.toDataURL("image/png"));
+            };
+            img.src = data.url;
+        })
+        .catch(err => {
+            alert('Failed to fetch image URL.');
+            console.error(err);
+        });
 
     // Helper for wrapping text
     function wrapText(ctx, text, x, y, maxWidth, lineHeight) {
@@ -694,7 +713,7 @@ function getBrandedResultImage(callback) {
         }
         lines.push(line);
         lines.forEach((l, i) => {
-            ctx.fillText(l.trim(), x, y + i * lineHeight);
+            ctx.fillText(l.trim(), x, y + i * lineHeight - ((lines.length - 1) * lineHeight) / 2);
         });
     }
 }
