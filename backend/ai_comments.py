@@ -30,7 +30,7 @@ def get_comments(image_url): # need to pass OPENAI_API_KEY and image url
                         "type": "text",
                         "text": (
                             "Please give a very concise, single-paragraph overall outfit comment and suggestion in English, "
-                            "no more than 50 words. Do not use bullet points, titles, or line breaks."
+                            "no more than 30 words. Do not use bullet points, titles, or line breaks."
                         )
                     }
                 ]
