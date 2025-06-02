@@ -641,6 +641,7 @@ function getBrandedResultImage(callback) {
 
     // Create a new canvas
     const img = new Image();
+    img.crossOrigin = "anonymous";
     img.onload = function() {
         const width = img.width;
         const height = img.height;
@@ -705,12 +706,14 @@ function downloadResult() {
         return;
     }
     getBrandedResultImage(function(dataUrl) {
+        console.log('downloadResult: Got dataUrl', dataUrl.slice(0, 50));
         const link = document.createElement('a');
         link.download = 'virtual-tryon-result.png';
         link.href = dataUrl;
         document.body.appendChild(link); // <-- append to DOM
         link.click();
         document.body.removeChild(link); // <-- remove after click
+        console.log('downloadResult: Download triggered');
     });
 }
 
