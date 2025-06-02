@@ -708,14 +708,20 @@ function getBrandedResultImage(callback) {
 
                 // --- Draw image with rounded corners (same as border) ---
                 ctx.save();
-                roundRect(ctx, imgFrameX, imgFrameY, imgFrameW, imgFrameH, imgRadius);
+                const innerImgX = imgFrameX + imgMargin;
+                const innerImgY = imgFrameY + imgMargin;
+                const innerImgW = drawImgWidth;
+                const innerImgH = drawImgHeight;
+                const innerImgRadius = imgRadius - imgMargin; // Make sure this is >= 0
+
+                roundRect(ctx, innerImgX, innerImgY, innerImgW, innerImgH, innerImgRadius > 0 ? innerImgRadius : 0);
                 ctx.clip();
                 ctx.drawImage(
                     img,
-                    imgFrameX + imgMargin,
-                    imgFrameY + imgMargin,
-                    drawImgWidth,
-                    drawImgHeight
+                    innerImgX,
+                    innerImgY,
+                    innerImgW,
+                    innerImgH
                 );
                 ctx.restore();
 
@@ -737,7 +743,7 @@ function getBrandedResultImage(callback) {
                 // Draw the text (fixed size, clip overflow)
                 ctx.font = `${10 * scale}px 'Segoe UI', 'Roboto', 'Helvetica Neue', Times New Roman, serif`;
                 ctx.fillStyle = themeColor;
-                ctx.textAlign = "center";
+                ctx.textAlign = "left";
                 ctx.textBaseline = "middle";
                 const maxTextWidth = commentFrameW - commentFramePadding * 2;
                 const lines = getWrappedLines(ctx, aiComment, maxTextWidth);
@@ -747,7 +753,7 @@ function getBrandedResultImage(callback) {
                 visibleLines.forEach((l, i) => {
                     ctx.fillText(
                         l.trim(),
-                        commentFrameX + commentFrameW / 2,
+                        commentFrameX + commentFramePadding,
                         textStartY + i * lineHeight
                     );
                 });
