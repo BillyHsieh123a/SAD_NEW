@@ -11,8 +11,6 @@ import requests
 s3_setting = {
     "S3_BUCKET": None,
     "S3_REGION": None,
-    # "S3_ACCESS_KEY": None,
-    # "S3_SECRET_KEY": None,
 }
 
 s3 = None
