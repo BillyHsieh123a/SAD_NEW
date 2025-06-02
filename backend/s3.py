@@ -138,6 +138,16 @@ def delete_image_from_s3(filename: str):
     except Exception as e:
         return {'error': f'Failed to delete: {str(e)}'}, 500
 
+s3_bp = Blueprint('s3_bp', _name_, url_prefix="/api/s3")
+
+@s3_bp.route('/presigned-url', methods=['GET'])
+def api_get_presigned_url():
+    filename = request.args.get('filename')
+    if not filename:
+        return jsonify({'error': 'Missing filename'}), 400
+    url = get_presigned_url(filename)
+    return jsonify({'url': url})
+
 # example
 # init_s3()
 # sample_image_url = "https://shoplineimg.com/5f4760ee70e52e003f4199b5/657bfa1a28b4fe001af779e3/800x.jpg"
