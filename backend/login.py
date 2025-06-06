@@ -1,3 +1,4 @@
+import bcrypt
 from flask import Blueprint, request, jsonify, session
 from db import get_psql_conn
 
@@ -17,17 +18,18 @@ def login_():
     row = cur.fetchone()
 
     if row:
-        user_id, db_password = row
-        if db_password == password:
+        user_id, hashed_pw = row
+        if bcrypt.checkpw(password.encode('utf-8'), hashed_pw.encode('utf-8')):
             session['username'] = username
-            session['user_id'] = user_id  # <-- Store user_id in session
+            session['user_id'] = user_id
             session['login'] = True
             return jsonify({"success": True, "message": "Login successful."}), 200
         else:
             return jsonify({"success": False, "message": "Password is incorrect."}), 401
     else:
-        # Insert new user, but do NOT log them in
-        cur.execute("INSERT INTO users (name, password) VALUES (%s, %s) RETURNING user_id", (username, password))
+        # Register new user with hashed password
+        hashed_pw = bcrypt.hashpw(password.encode('utf-8'), bcrypt.gensalt()).decode('utf-8')
+        cur.execute("INSERT INTO users (name, password) VALUES (%s, %s) RETURNING user_id", (username, hashed_pw))
         user_id = cur.fetchone()[0]
         conn.commit()
         return jsonify({"success": False, "message": "Account created. Please log in."}), 201
