@@ -287,7 +287,7 @@ document.getElementById('loginForm').addEventListener('submit', async function(e
 #### 檔案格式
 - 支援：JPG、PNG、WebP
 - 建議解析度：800x600 以上
-- 單檔大小：建議小於 10MB
+- 單檔大小：建議小於 5MB
 
 #### 網路要求
 - 穩定的網際網路連接
