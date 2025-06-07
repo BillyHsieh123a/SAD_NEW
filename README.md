@@ -354,6 +354,6 @@ document.getElementById('loginForm').addEventListener('submit', async function(e
 ## API 文件
 
 - 🧾 [OpenAPI YAML 原始檔案](./docs/openapi.yaml)
-- 🔍 [查看渲染後的 OpenAPI 文件（Redoc）](https://redocly.github.io/redoc/?url=https://raw.githubusercontent.com/BillyHsieh123a/SAD_NEW/main/docs/openapi.yaml)
+- 🔍 [查看渲染後的 OpenAPI 文件（Redoc）](https://BillyHsieh123a.github.io/SAD_NEW/)
 
 *Dressique - Drag it, Drop it, Dress it*
