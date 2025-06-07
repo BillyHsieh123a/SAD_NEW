@@ -157,7 +157,7 @@ document.getElementById('loginForm').addEventListener('submit', async function(e
 ```
 
 #### 會話管理
-- 使用 Cookie 或 Session 維護登入狀態
+- 使用 Session 維護登入狀態
 
 ### 2. 檔案上傳系統
 
