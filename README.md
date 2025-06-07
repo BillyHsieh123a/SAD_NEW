@@ -4,6 +4,10 @@
 
 Dressique 是一個基於 AI 的虛擬試穿應用程式，允許使用者上傳個人照片和服裝，並透過 AI 技術生成虛擬試穿效果。系統採用前後端分離架構，提供直觀的拖放介面和完整的服裝管理功能。
 
+## 展示影片
+
+[![Watch the video](https://img.youtube.com/vi/L4n3UHg-Rd4/hqdefault.jpg)](https://youtu.be/L4n3UHg-Rd4)
+
 ---
 
 ## 系統架構設計
