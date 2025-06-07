@@ -158,8 +158,6 @@ document.getElementById('loginForm').addEventListener('submit', async function(e
 
 #### 會話管理
 - 使用 Cookie 或 Session 維護登入狀態
-- 所有 API 請求包含 `credentials: 'include'` 以維持會話
-- 自動登出和重新登入機制
 
 ### 2. 檔案上傳系統
 
@@ -229,7 +227,7 @@ document.getElementById('loginForm').addEventListener('submit', async function(e
    
 #### 前置步驟：使用者登入
 1. 開啟 Dressique 應用程式
-2. 在登入頁面輸入使用者名稱和密碼
+2. 在登入/註冊頁面輸入使用者名稱和密碼
 3. 點擊「登入」按鈕
 4. 登入成功後將自動重定向到試穿功能頁面
 
