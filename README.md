@@ -326,6 +326,9 @@ document.getElementById('loginForm').addEventListener('submit', async function(e
 - 可透過縮圖畫廊查看歷史記錄
 - 不需要的結果可以個別刪除
 
+#### Q8：為什麼無法使用試穿功能？
+- 同時有過多使用者在使用該功能
+
 ---
 
 ## 系統維護
