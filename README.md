@@ -11,6 +11,7 @@ Dressique 是一個基於 AI 的虛擬試穿應用程式，允許使用者上傳
 ### 1. 前端架構
 
 #### 核心模組
+- **身份驗證模組**：處理使用者登入、註冊和會話管理
 - **檔案上傳模組**：處理使用者照片和服裝照片上傳
 - **服裝管理模組**：分類管理上衣和下裝
 - **AI 試穿模組**：與後端 API 交互進行試穿生成
@@ -27,19 +28,29 @@ Dressique 是一個基於 AI 的虛擬試穿應用程式，允許使用者上傳
 
 #### 主要 API 端點
 ```
+# 身份驗證相關
+POST /api/login/                     # 使用者登入
+POST /api/logout/                    # 使用者登出
+POST /api/register/                  # 使用者註冊
+GET /api/auth/status                 # 檢查登入狀態
+
+# 使用者照片管理
 POST /api/user-photo/upload          # 上傳使用者照片
 DELETE /api/user-photo/              # 刪除使用者照片
 GET /api/user-photo/                 # 獲取使用者照片
 
+# 服裝管理
 POST /api/user-clothes/upload        # 上傳單個服裝
 POST /api/user-clothes/bulk-upload   # 批量上傳服裝
 GET /api/user-clothes/               # 獲取使用者服裝列表
 DELETE /api/user-clothes/{id}        # 刪除特定服裝
 
+# AI 試穿功能
 POST /api/try-on/                    # 生成試穿結果
 GET /api/try-on/                     # 獲取試穿結果列表
 DELETE /api/try-on/{id}              # 刪除試穿結果
 
+# 檔案存取
 GET /api/s3/presigned-url            # 獲取 S3 預簽名 URL
 GET /api/s3/proxy/{filepath}         # S3 代理存取
 ```
@@ -78,7 +89,57 @@ clothingItem = {
 
 ## 功能模組詳細設計
 
-### 1. 檔案上傳系統
+### 1. 身份驗證系統
+
+#### 登入流程
+1. **表單驗證**：檢查使用者名稱和密碼是否為空
+2. **API 調用**：發送登入請求到 `/api/login/`
+3. **響應處理**：
+   - 成功：重定向到試穿頁面 (`/try-on`)
+   - 失敗：顯示錯誤訊息
+4. **錯誤處理**：網路錯誤、伺服器錯誤的友善提示
+
+#### 登入表單處理
+```javascript
+// 登入表單事件處理
+document.getElementById('loginForm').addEventListener('submit', async function(e) {
+    e.preventDefault();
+    
+    // 表單驗證
+    const username = this.username.value.trim();
+    const password = this.password.value.trim();
+    
+    if (!username || !password) {
+        showError("Please enter both username and password.");
+        return;
+    }
+    
+    // API 調用和響應處理
+    try {
+        const response = await fetch('/api/login/', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ username, password })
+        });
+        
+        const data = await response.json();
+        if (data.success) {
+            window.location.href = '/try-on';  // 重定向到主功能頁面
+        } else {
+            showError(data.message || "Login failed.");
+        }
+    } catch (error) {
+        showError("Server error. Please try again.");
+    }
+});
+```
+
+#### 會話管理
+- 使用 Cookie 或 Session 維護登入狀態
+- 所有 API 請求包含 `credentials: 'include'` 以維持會話
+- 自動登出和重新登入機制
+
+### 2. 檔案上傳系統
 
 #### 支援的上傳方式
 - **點擊上傳**：點擊上傳區域選擇檔案
@@ -138,6 +199,12 @@ clothingItem = {
 
 ### 快速開始
 
+#### 前置步驟：使用者登入
+1. 開啟 Dressique 應用程式
+2. 在登入頁面輸入使用者名稱和密碼
+3. 點擊「登入」按鈕
+4. 登入成功後將自動重定向到試穿功能頁面
+
 #### 步驟 1：上傳個人照片
 1. 點擊左上角「上傳您的照片」區域
 2. 選擇清晰的全身照片
@@ -185,6 +252,12 @@ clothingItem = {
 
 ### 技術要求
 
+#### 瀏覽器支援
+- Chrome 80+
+- Firefox 75+
+- Safari 13+
+- Edge 80+
+
 #### 檔案格式
 - 支援：JPG、PNG、WebP
 - 建議解析度：800x600 以上
@@ -193,7 +266,7 @@ clothingItem = {
 #### 網路要求
 - 穩定的網際網路連接
 - 上傳速度：建議 1Mbps 以上
-- AI 處理需要 10-20 秒
+- AI 處理需要 10-30 秒
 
 ### 常見問題
 
@@ -212,7 +285,16 @@ clothingItem = {
 - 服裝圖片最好是平鋪或模特展示
 - 確保光線充足，避免陰影
 
-#### Q4：可以保存多少個試穿結果？
+#### Q5：忘記密碼怎麼辦？
+- 聯繫系統管理員重設密碼
+- 或使用密碼重設功能（如果已實現）
+
+#### Q6：登入後頁面沒有反應？
+- 檢查瀏覽器是否阻擋了重定向
+- 清除瀏覽器快取後重試
+- 確認登入憑證是否正確
+
+#### Q7：可以保存多少個試穿結果？
 - 系統會保存所有生成的試穿結果
 - 可透過縮圖畫廊查看歷史記錄
 - 不需要的結果可以個別刪除
@@ -230,6 +312,9 @@ clothingItem = {
 - 檔案類型驗證
 - 檔案大小限制
 - 使用者資料隔離
+- 會話管理和逾時機制
+- 密碼安全策略
+- CSRF 和 XSS 防護
 
 ### 擴展性
 - 模組化設計便於功能擴展
@@ -238,4 +323,4 @@ clothingItem = {
 
 ---
 
-*Dressique - Dragit, Drop it, Dress it*
+*Dressique - 讓 AI 重新定義您的穿搭體驗*
