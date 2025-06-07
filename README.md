@@ -12,11 +12,11 @@ Dressique 是一個基於 AI 的虛擬試穿應用程式，允許使用者上傳
 
 #### 登入/註冊
 
-![登入](images/1.png)
+<img src="images/1.png" alt="登入" width="500"/>
 
 #### 主頁面
 
-![主頁面](images/2.png)
+<img src="images/2.png" alt="主頁面" width="500"/>
 
 ---
 
