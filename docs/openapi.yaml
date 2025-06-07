@@ -1,0 +1,525 @@
+openapi: 3.0.3
+info:
+  title: User Login API
+  description: 提供使用者登入與前端頁面導向
+  version: 1.0.0
+tags:
+  - name: User Clothes
+    description: 使用者衣物圖片管理
+  - name: Try-On
+    description: 虛擬試衣結果管理與 AI 評語
+  - name: User Photo
+    description: 使用者虛擬試衣人像照片上傳與管理
+
+
+components:
+  securitySchemes:
+    cookieAuth:
+      type: apiKey
+      in: cookie
+      name: session
+
+security:
+  - cookieAuth: []
+
+paths:
+  /api/login/:
+    post:
+      summary: 使用者登入（若不存在則自動註冊）
+      tags:
+        - Auth
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - username
+                - password
+              properties:
+                username:
+                  type: string
+                  example: johndoe
+                password:
+                  type: string
+                  format: password
+                  example: secret123
+      responses:
+        '200':
+          description: 登入成功
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: true
+                  message:
+                    type: string
+                    example: Login successful.
+        '201':
+          description: 自動註冊成功，提示請登入
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: false
+                  message:
+                    type: string
+                    example: Account created. Please log in.
+        '400':
+          description: 請求缺少帳號或密碼
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: false
+                  message:
+                    type: string
+                    example: Username and password required.
+        '401':
+          description: 密碼錯誤
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: false
+                  message:
+                    type: string
+                    example: Password is incorrect.
+
+  /:
+    get:
+      summary: 首頁導向（依登入狀態轉導至 /login 或 /try-on）
+      tags:
+        - Page
+      responses:
+        '302':
+          description: 根據登入狀態重導至 login 或 try-on 頁面
+
+  /login:
+    get:
+      summary: 顯示登入表單頁面
+      tags:
+        - Page
+      responses:
+        '200':
+          description: 回傳 HTML 登入頁面
+
+    post:
+      summary: 處理登入表單提交（範例測試帳號）
+      tags:
+        - Page
+      requestBody:
+        required: true
+        content:
+          application/x-www-form-urlencoded:
+            schema:
+              type: object
+              required:
+                - username
+                - password
+              properties:
+                username:
+                  type: string
+                  example: test
+                password:
+                  type: string
+                  example: test
+      responses:
+        '302':
+          description: 登入成功則導向 /try-on，失敗則回 login 並顯示錯誤
+
+  /try-on:
+    get:
+      summary: 試衣頁面（需登入）
+      tags:
+        - Page
+      responses:
+        '200':
+          description: 回傳試衣 HTML 頁面
+        '302':
+          description: 未登入者將被重導至 /login
+          
+  /api/user-clothes/upload:
+    post:
+      summary: 上傳單一衣物圖片
+      tags:
+        - User Clothes
+      requestBody:
+        required: true
+        content:
+          multipart/form-data:
+            schema:
+              type: object
+              required:
+                - clothes-photo
+                - type
+              properties:
+                clothes-photo:
+                  type: string
+                  format: binary
+                type:
+                  type: string
+                  enum: [Tops, Bottoms]
+      responses:
+        '200':
+          description: 上傳成功
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                  clothes_id:
+                    type: integer
+                  type:
+                    type: string
+                  filepath:
+                    type: string
+                  presigned_url:
+                    type: string
+        '400':
+          description: 缺少必要欄位
+        '500':
+          description: 上傳失敗（可能是 S3 或資料庫錯誤）
+
+  /api/user-clothes/bulk-upload:
+    post:
+      summary: 批次上傳衣物圖片
+      tags:
+        - User Clothes
+      requestBody:
+        required: true
+        content:
+          multipart/form-data:
+            schema:
+              type: object
+              required:
+                - clothes-photos
+                - type
+              properties:
+                clothes-photos:
+                  type: array
+                  items:
+                    type: string
+                    format: binary
+                type:
+                  type: string
+                  enum: [Tops, Bottoms]
+      responses:
+        '200':
+          description: 批次上傳結果
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  type: object
+                  properties:
+                    message:
+                      type: string
+                    clothes_id:
+                      type: integer
+                    type:
+                      type: string
+                    filepath:
+                      type: string
+                    presigned_url:
+                      type: string
+                    error:
+                      type: string
+
+  /api/user-clothes/:
+    get:
+      summary: 查詢使用者所有衣物
+      tags:
+        - User Clothes
+      parameters:
+        - name: user_id
+          in: query
+          required: false
+          schema:
+            type: integer
+      responses:
+        '200':
+          description: 衣物列表
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  type: object
+                  properties:
+                    clothes_id:
+                      type: integer
+                    type:
+                      type: string
+                    url:
+                      type: string
+
+  /api/user-clothes/{clothes_id}:
+    delete:
+      summary: 刪除指定衣物圖片
+      tags:
+        - User Clothes
+      parameters:
+        - name: clothes_id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        '200':
+          description: 刪除成功
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: Clothing item deleted
+        '404':
+          description: 找不到資料
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
+         
+  /api/try-on/:
+    post:
+      summary: 執行虛擬試穿
+      tags:
+        - Try-On
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - top_id
+                - bottom_id
+              properties:
+                top_id:
+                  type: integer
+                  nullable: true
+                bottom_id:
+                  type: integer
+                  nullable: true
+      responses:
+        '200':
+          description: 試穿成功，返回合成圖片與 AI 評語
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  try_on_id:
+                    type: integer
+                  image_url:
+                    type: string
+                  comments:
+                    type: string
+        '400':
+          description: 缺少必要資料或未選擇衣物
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
+        '404':
+          description: 使用者照片不存在
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
+        '500':
+          description: Fitroom API 呼叫失敗
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
+
+    get:
+      summary: 取得使用者所有試穿結果
+      tags:
+        - Try-On
+      responses:
+        '200':
+          description: 試穿結果列表
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  type: object
+                  properties:
+                    try_on_id:
+                      type: integer
+                    image_url:
+                      type: string
+                    comments:
+                      type: string
+
+  /api/try-on/{try_on_id}:
+    delete:
+      summary: 刪除單一試穿結果
+      tags:
+        - Try-On
+      parameters:
+        - name: try_on_id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        '200':
+          description: 刪除成功
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+        '404':
+          description: 試穿紀錄不存在
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
+         
+  /api/user-photo/upload:
+    post:
+      summary: 上傳使用者人像照片
+      tags:
+        - User Photo
+      requestBody:
+        required: true
+        content:
+          multipart/form-data:
+            schema:
+              type: object
+              properties:
+                user-photo:
+                  type: string
+                  format: binary
+      responses:
+        '200':
+          description: 上傳成功
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                  photo_id:
+                    type: integer
+                  filepath:
+                    type: string
+                  presigned_url:
+                    type: string
+        '400':
+          description: 缺少 user_id 或檔案
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
+
+  /api/user-photo/:
+    get:
+      summary: 取得使用者人像照片 URL
+      tags:
+        - User Photo
+      parameters:
+        - name: user_id
+          in: query
+          required: false
+          schema:
+            type: integer
+      responses:
+        '200':
+          description: 使用者照片清單
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  type: object
+                  properties:
+                    photo_id:
+                      type: integer
+                    url:
+                      type: string
+
+    delete:
+      summary: 刪除使用者人像照片
+      tags:
+        - User Photo
+      responses:
+        '200':
+          description: 刪除成功
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                  photo_id:
+                    type: integer
+        '404':
+          description: 找不到圖片
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
+        '500':
+          description: 系統錯誤
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
+
+
+                  
+
+
