@@ -353,4 +353,9 @@ document.getElementById('loginForm').addEventListener('submit', async function(e
 
 ---
 
+## API 文件
+
+- 🔗 [Swagger UI 文件](https://github.com/BillyHsieh123a/SAD_NEW)
+- 📄 [OpenAPI 原始檔案](./docs/openapi.yaml)
+
 *Dressique - Drag it, Drop it, Dress it*
