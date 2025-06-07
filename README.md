@@ -287,7 +287,7 @@ document.getElementById('loginForm').addEventListener('submit', async function(e
 
 #### Q5：忘記密碼怎麼辦？
 - 聯繫系統管理員重設密碼
-- 或使用密碼重設功能（如果已實現）
+- 或使用密碼重設功能
 
 #### Q6：登入後頁面沒有反應？
 - 檢查瀏覽器是否阻擋了重定向
@@ -323,4 +323,4 @@ document.getElementById('loginForm').addEventListener('submit', async function(e
 
 ---
 
-*Dressique - 讓 AI 重新定義您的穿搭體驗*
+*Dressique - Drag it, Drop it, Dress it*
