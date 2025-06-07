@@ -351,6 +351,10 @@ document.getElementById('loginForm').addEventListener('submit', async function(e
 
 ---
 
+## Low Fidelity Wireframe
+
+<img src="images/Low Fidelity Wireframe.png" alt="主頁面" width="500"/>
+
 ## API 文件
 
 - 🧾 [OpenAPI YAML 原始檔案](./docs/openapi.yaml)
