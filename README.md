@@ -4,6 +4,20 @@
 
 Dressique 是一個基於 AI 的虛擬試穿應用程式，允許使用者上傳個人照片和服裝，並透過 AI 技術生成虛擬試穿效果。系統採用前後端分離架構，提供直觀的拖放介面和完整的服裝管理功能。
 
+## 展示影片
+
+[![Watch the video](https://img.youtube.com/vi/L4n3UHg-Rd4/hqdefault.jpg)](https://youtu.be/L4n3UHg-Rd4)
+
+## 系統介面
+
+#### 登入/註冊
+
+<img src="images/1.png" alt="登入" width="500"/>
+
+#### 主頁面
+
+<img src="images/2.png" alt="主頁面" width="500"/>
+
 ---
 
 ## 系統架構設計
@@ -91,6 +105,14 @@ clothingItem = {
 
 ### 1. 身份驗證系統
 
+#### 註冊流程
+1. **表單驗證**：檢查使用者名稱和密碼是否為空
+2. **API 調用**：發送註冊請求到 `/api/register/`
+3. **響應處理**：
+   - 成功：重定向到試穿頁面 (`/login`)
+   - 失敗：顯示錯誤訊息
+4. **錯誤處理**：網路錯誤、伺服器錯誤的友善提示
+   
 #### 登入流程
 1. **表單驗證**：檢查使用者名稱和密碼是否為空
 2. **API 調用**：發送登入請求到 `/api/login/`
@@ -199,6 +221,12 @@ document.getElementById('loginForm').addEventListener('submit', async function(e
 
 ### 快速開始
 
+#### 前置步驟：使用者註冊
+1. 開啟 Dressique 應用程式
+2. 在登入/註冊頁面輸入想要註冊的使用者名稱和密碼
+3. 點擊「登入」按鈕
+4. 註冊成功後將自動重定向到試穿功能頁面
+   
 #### 前置步驟：使用者登入
 1. 開啟 Dressique 應用程式
 2. 在登入頁面輸入使用者名稱和密碼
@@ -287,7 +315,6 @@ document.getElementById('loginForm').addEventListener('submit', async function(e
 
 #### Q5：忘記密碼怎麼辦？
 - 聯繫系統管理員重設密碼
-- 或使用密碼重設功能（如果已實現）
 
 #### Q6：登入後頁面沒有反應？
 - 檢查瀏覽器是否阻擋了重定向
@@ -298,6 +325,9 @@ document.getElementById('loginForm').addEventListener('submit', async function(e
 - 系統會保存所有生成的試穿結果
 - 可透過縮圖畫廊查看歷史記錄
 - 不需要的結果可以個別刪除
+
+#### Q8：為什麼無法使用試穿功能？
+- 同時有過多使用者在使用該功能
 
 ---
 
@@ -323,4 +353,4 @@ document.getElementById('loginForm').addEventListener('submit', async function(e
 
 ---
 
-*Dressique - 讓 AI 重新定義您的穿搭體驗*
+*Dressique - Drag it, Drop it, Dress it*
