@@ -185,12 +185,6 @@ clothingItem = {
 
 ### 技術要求
 
-#### 瀏覽器支援
-- Chrome 80+
-- Firefox 75+
-- Safari 13+
-- Edge 80+
-
 #### 檔案格式
 - 支援：JPG、PNG、WebP
 - 建議解析度：800x600 以上
@@ -199,7 +193,7 @@ clothingItem = {
 #### 網路要求
 - 穩定的網際網路連接
 - 上傳速度：建議 1Mbps 以上
-- AI 處理需要 10-30 秒
+- AI 處理需要 10-20 秒
 
 ### 常見問題
 
@@ -244,4 +238,4 @@ clothingItem = {
 
 ---
 
-*Dressique - 讓 AI 重新定義您的穿搭體驗*
+*Dressique - Dragit, Drop it, Dress it*
