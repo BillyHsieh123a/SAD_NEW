@@ -361,3 +361,31 @@ document.getElementById('loginForm').addEventListener('submit', async function(e
 - 🔍 [查看渲染後的 OpenAPI 文件（Redoc）](https://BillyHsieh123a.github.io/SAD_NEW/)
 
 *Dressique - Drag it, Drop it, Dress it*
+
+## Unit Test
+
+我們使用 **Jest** 作為 JavaScript 測試框架，搭配 **jsdom** 模擬瀏覽器環境，建立完整的自動化測試體系。
+
+### 測試檔案結構
+```
+__tests__/
+├── login.test.js     # 登入功能測試
+└── try_on.test.js    # 試穿功能測試
+```
+
+### 登入功能測試
+**表單驗證**：測試用戶名/密碼為空、空白字符等情況的錯誤處理。**成功登入**：驗證 API 呼叫參數正確性、空白字符修剪、錯誤訊息隱藏。**登入失敗**：測試伺服器錯誤訊息和預設錯誤處理。**網路錯誤**：涵蓋連線錯誤和 JSON 解析錯誤。**UI 行為**：確保表單提交時的正確 UI 反應。
+
+### 試穿功能測試
+**初始狀態**：檢查 DOM 元素載入和初始 UI 狀態。**衣服選擇**：測試點擊事件、選中狀態切換、視覺回饋。**試穿功能**：驗證按鈕啟用邏輯、結果顯示、圖片載入。**錯誤處理**：測試無選擇提示、API 錯誤、網路問題的處理。
+
+### GitHub Actions 自動化
+每次 push 或 PR 到 main 分支時自動觸發，在 Node.js 18.x 和 20.x 環境下執行測試，包含程式碼檢出、環境設置、相依套件安裝、測試執行和覆蓋率報告產生。
+
+### 執行指令
+- `npm test`：執行所有測試
+- `npm run test:watch`：監視模式
+- `npm run test:coverage`：產生覆蓋率報告
+- `npm run test:ci`：CI 環境執行
+
+這套測試系統提供自動化、全面性的測試覆蓋，確保每次程式碼變更都能快速獲得反饋，防止功能回歸，提升部署信心。
