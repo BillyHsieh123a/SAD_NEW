@@ -1,2 +1,61 @@
+# ===== 你原本的設定 =====
 **/__pycache__/
 *.env
+
+# ===== Python 相關 =====
+*.pyc
+*.pyo
+*.pyd
+__pycache__/
+*.so
+.Python
+env/
+venv/
+ENV/
+env.bak/
+venv.bak/
+.pytest_cache/
+
+# ===== JavaScript/Node.js 相關 =====
+node_modules/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+package-lock.json.bak
+
+# ===== 測試覆蓋率報告 =====
+coverage/
+*.lcov
+.nyc_output/
+
+# ===== 建置檔案 =====
+build/
+dist/
+*.min.js
+*.min.css
+
+# ===== 環境變數 =====
+.env
+.env.local
+.env.development.local
+.env.test.local
+.env.production.local
+
+# ===== IDE 設定檔 =====
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# ===== 作業系統檔案 =====
+.DS_Store
+Thumbs.db
+*.tmp
+
+# ===== 日誌檔案 =====
+logs/
+*.log
+
+# ===== 其他 =====
+.cache/
+.temp/
