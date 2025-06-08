@@ -353,7 +353,11 @@ document.getElementById('loginForm').addEventListener('submit', async function(e
 
 ## Low Fidelity Wireframe
 
-<img src="images/Low Fidelity Wireframe.png" alt="主頁面" width="500"/>
+<img src="images/Low Fidelity Wireframe.png" alt="Low Fidelity Wireframe" width="500"/>
+
+## User Story Mapping
+
+<img src="images/User Story Mapping.png" alt="User Story Mapping" width="500"/>
 
 ## API 文件
 
